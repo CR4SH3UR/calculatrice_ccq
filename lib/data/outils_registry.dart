@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+
+import '../screens/calculs_plus.dart';
+import '../screens/charpente_screens.dart';
+import '../screens/chantier_screens.dart';
+import '../screens/documentation_screen.dart';
+import '../screens/feuille_temps_screen.dart';
+import '../screens/infos_screens.dart';
+import '../screens/materiaux_screens.dart';
+import '../screens/medic_screen.dart';
+import '../screens/outils_plus.dart';
+import '../screens/paie_screens.dart';
+import '../screens/rapport_screen.dart';
+import '../screens/retraite_screen.dart';
+import '../screens/sauvegarde_screen.dart';
+import '../screens/securite_plus.dart';
+import '../screens/syndicat_screen.dart';
+import '../theme/app_theme.dart';
+
+/// Un outil de l'app : identité, apparence et écran à ouvrir.
+class Outil {
+  const Outil(this.id, this.titre, this.sousTitre, this.icon, this.builder);
+  final String id;
+  final String titre;
+  final String sousTitre;
+  final IconData icon;
+  final WidgetBuilder builder;
+}
+
+/// Une section de l'accueil (un groupe d'outils d'une même couleur).
+class SectionOutils {
+  const SectionOutils(this.titre, this.couleur, this.outils);
+  final String titre;
+  final Color couleur;
+  final List<Outil> outils;
+}
+
+/// Toutes les sections et outils, dans l'ordre d'affichage de l'accueil.
+final List<SectionOutils> sectionsOutils = [
+  SectionOutils('Paie & salaire', AppColors.paie, [
+    Outil('calculateur', 'Calculateur de paie', 'Brut, congés, net',
+        Icons.payments, (_) => const CalculateurPaieScreen()),
+    Outil('feuille-temps', 'Feuille de temps', 'Note et totalise tes heures',
+        Icons.event_note, (_) => const FeuilleTempsScreen()),
+    Outil('rapport-heures', 'Rapport d\'heures', 'Filtre + export CSV',
+        Icons.summarize, (_) => const RapportHeuresScreen()),
+    Outil('sauvegarde', 'Sauvegarde', 'Exporte et restaure tes heures',
+        Icons.backup, (_) => const SauvegardeScreen()),
+    Outil('comparateur', 'Comparateur de taux', 'Métier × 5 conventions',
+        Icons.compare_arrows, (_) => const ComparateurScreen()),
+    Outil('salaire-annuel', 'Salaire annuel', 'Horaire → annuel',
+        Icons.calendar_month, (_) => const SalaireAnnuelScreen()),
+    Outil('retraite', 'Retraite', 'Projette ton compte complémentaire',
+        Icons.savings, (_) => const RetraiteScreen()),
+    Outil('vacances', 'Vacances & congés', 'Indemnité ~13 %',
+        Icons.beach_access, (_) => const VacancesScreen()),
+    Outil('paie-nette', 'Paie nette', 'Estimation des retenues',
+        Icons.account_balance_wallet, (_) => const PaieNetteScreen()),
+    Outil('deplacement', 'Déplacement', 'Kilométrage et indemnité',
+        Icons.directions_car, (_) => const DeplacementScreen()),
+    Outil('rappel-retro', 'Rappel rétroactif', 'Paie de rappel (nouveau taux)',
+        Icons.history, (_) => const RappelRetroScreen()),
+  ]),
+  SectionOutils('Calculs de chantier', AppColors.chantier, [
+    Outil('convertisseur', 'Convertisseur', 'Impérial ↔ métrique',
+        Icons.straighten, (_) => const ConvertisseurScreen()),
+    Outil('fractions', 'Fractions de pouce', 'Décimal ↔ 1/16',
+        Icons.architecture, (_) => const FractionsScreen()),
+    Outil('fractions-avancees', 'Fractions avancées', 'Additionner / soustraire',
+        Icons.functions, (_) => const FractionsAvanceesScreen()),
+    Outil('surface', 'Surface', 'Rectangle, triangle, cercle',
+        Icons.crop_square, (_) => const SurfaceScreen()),
+    Outil('aires', 'Aires complexes', 'Trapèze, forme en L',
+        Icons.crop_free, (_) => const AiresScreen()),
+    Outil('beton', 'Béton', 'Volume, verges³, sacs',
+        Icons.foundation, (_) => const BetonScreen()),
+    Outil('pente-tuyau', 'Pente de tuyau', 'Chute, drainage',
+        Icons.trending_down, (_) => const PenteTuyauScreen()),
+    Outil('echelle', 'Échelle 4:1', 'Recul sécuritaire',
+        Icons.stairs, (_) => const EchelleScreen()),
+  ]),
+  SectionOutils('Matériaux & estimation', AppColors.materiaux, [
+    Outil('peinture', 'Peinture', 'Litres et contenants',
+        Icons.format_paint, (_) => const PeintureScreen()),
+    Outil('briques', 'Briques & blocs', 'Nombre par surface',
+        Icons.grid_view, (_) => const BriquesScreen()),
+    Outil('isolation', 'Isolation (R)', 'Valeur R et épaisseur',
+        Icons.ac_unit, (_) => const IsolationScreen()),
+    Outil('cout', 'Coût matériaux', 'Quantité × prix + taxes',
+        Icons.receipt_long, (_) => const CoutScreen()),
+    Outil('bardeaux', 'Bardeaux', 'Toiture, paquets',
+        Icons.roofing, (_) => const BardeauxScreen()),
+    Outil('gravier', 'Gravier & remblai', 'Volume → tonnes',
+        Icons.landscape, (_) => const GravierScreen()),
+    Outil('ceramique', 'Céramique', 'Tuiles par surface',
+        Icons.grid_on, (_) => const CeramiqueScreen()),
+    Outil('scellant', 'Scellant', 'Tubes par longueur',
+        Icons.water_drop, (_) => const ScellantScreen()),
+    Outil('coffrage', 'Coffrage de mur', 'Feuilles et montants',
+        Icons.foundation, (_) => const CoffrageScreen()),
+    Outil('beton-avance', 'Béton avancé', 'Dalle, mur, colonne, semelle',
+        Icons.view_in_ar, (_) => const BetonAvanceScreen()),
+  ]),
+  SectionOutils('Charpente & finition', AppColors.charpente, [
+    Outil('pente-toit', 'Pente de toit', 'Montée/12, angle, %',
+        Icons.roofing, (_) => const PenteToitScreen()),
+    Outil('pente-conv', 'Convertisseur de pente', '% ↔ x/12 ↔ degrés',
+        Icons.show_chart, (_) => const PenteConvScreen()),
+    Outil('escalier', 'Escalier', 'Contremarches et girons',
+        Icons.stairs, (_) => const EscalierScreen()),
+    Outil('equerre', 'Équerre 3-4-5', 'Vérifier un angle droit',
+        Icons.square_foot, (_) => const EquerreScreen()),
+    Outil('materiaux', 'Matériaux', 'Montants et feuilles 4×8',
+        Icons.dashboard, (_) => const MateriauxScreen()),
+    Outil('angles', 'Angles de coupe', 'Onglet, coins',
+        Icons.content_cut, (_) => const AnglesScreen()),
+    Outil('solives', 'Solives / poutrelles', 'Entraxe et quantité',
+        Icons.view_week, (_) => const SolivesScreen()),
+  ]),
+  SectionOutils('Outils', AppColors.chantier, [
+    Outil('calculatrice', 'Calculatrice', 'Les 4 opérations',
+        Icons.calculate, (_) => const CalculatriceScreen()),
+    Outil('convertisseur-avance', 'Convertisseur avancé',
+        'Poids, temp., pression…', Icons.swap_horiz,
+        (_) => const ConvertisseurAvanceScreen()),
+    Outil('calculs-electriques', 'Calculs électriques',
+        'Loi d\'Ohm, chute de tension', Icons.electric_bolt,
+        (_) => const CalculsElectriquesScreen()),
+    Outil('couple-serrage', 'Couple de serrage', 'N·m, lb·pi, lb·po, kgf·m',
+        Icons.settings, (_) => const CoupleSerrageScreen()),
+  ]),
+  SectionOutils('Infos pour les gars', AppColors.infos, [
+    Outil('taux', 'Taux par métier', 'Actuels + prochains taux',
+        Icons.badge, (_) => const TauxMetiersScreen()),
+    Outil('syndicats', 'Syndicats', 'Les 5 associations',
+        Icons.groups, (_) => const SyndicatScreen()),
+    Outil('medic', 'MÉDIC Construction', 'Assurances et retraite',
+        Icons.health_and_safety, (_) => const MedicScreen()),
+    Outil('securite', 'Santé-sécurité', 'Aide-mémoire chantier',
+        Icons.shield, (_) => const SecuriteScreen()),
+    Outil('simdut', 'SIMDUT 2015', 'Pictogrammes de danger',
+        Icons.dangerous, (_) => const SimdutScreen()),
+    Outil('lignes-electriques', 'Lignes électriques', 'Distances d\'approche',
+        Icons.flash_on, (_) => const LignesElectriquesScreen()),
+    Outil('feries', 'Jours fériés', 'Fériés payés et vacances',
+        Icons.event, (_) => const FeriesScreen()),
+    Outil('numeros', 'Numéros utiles', 'CCQ, CNESST, urgence',
+        Icons.phone, (_) => const ContactsScreen()),
+    Outil('documentation', 'Documentation', 'Conventions et docs',
+        Icons.menu_book, (_) => const DocumentationScreen()),
+  ]),
+];
+
+/// Liste plate de tous les outils (pour la recherche et les favoris).
+final List<Outil> tousLesOutils = [
+  for (final s in sectionsOutils) ...s.outils
+];
+
+/// Retrouve un outil par son identifiant (ou `null`).
+Outil? outilParId(String id) {
+  for (final o in tousLesOutils) {
+    if (o.id == id) return o;
+  }
+  return null;
+}
