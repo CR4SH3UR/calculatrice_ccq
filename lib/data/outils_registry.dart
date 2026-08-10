@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../screens/calculs_plus.dart';
 import '../screens/charpente_screens.dart';
 import '../screens/chantier_screens.dart';
+import '../screens/conventions_screen.dart';
 import '../screens/documentation_screen.dart';
 import '../screens/feuille_temps_screen.dart';
 import '../screens/infos_screens.dart';
@@ -146,7 +147,9 @@ final List<SectionOutils> sectionsOutils = [
         Icons.event, (_) => const FeriesScreen()),
     Outil('numeros', 'Numéros utiles', 'CCQ, CNESST, urgence',
         Icons.phone, (_) => const ContactsScreen()),
-    Outil('documentation', 'Documentation', 'Conventions et docs',
+    Outil('conventions', 'Conventions collectives', 'Hors ligne, par secteur',
+        Icons.gavel, (_) => const ConventionsScreen()),
+    Outil('documentation', 'Documentation', 'Guides et infos',
         Icons.menu_book, (_) => const DocumentationScreen()),
   ]),
 ];

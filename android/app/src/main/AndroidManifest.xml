@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Requise pour les taux en direct (API CCQ) et le téléchargement des
+         conventions collectives. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="calculatrice_ccq"
         android:name="${applicationName}"
