@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../screens/calculs_plus.dart';
 import '../screens/charpente_screens.dart';
 import '../screens/chantier_screens.dart';
@@ -166,3 +167,80 @@ Outil? outilParId(String id) {
   }
   return null;
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+//  Traductions anglaises (la coquille : sections + outils). Le contenu des
+//  écrans se traduit progressivement avec `tr()`.
+// ─────────────────────────────────────────────────────────────────────────
+const Map<String, String> _sectionsEn = {
+  'Favoris': 'Favorites',
+  'Paie & salaire': 'Pay & wages',
+  'Calculs de chantier': 'Site calculations',
+  'Matériaux & estimation': 'Materials & estimating',
+  'Charpente & finition': 'Framing & finishing',
+  'Outils': 'Tools',
+  'Infos pour les gars': 'Worker info',
+};
+
+/// (titre, sous-titre) anglais par identifiant d'outil.
+const Map<String, (String, String)> _outilsEn = {
+  'calculateur': ('Pay calculator', 'Gross, holiday pay, net'),
+  'feuille-temps': ('Timesheet', 'Log and total your hours'),
+  'rapport-heures': ('Hours report', 'Filter + CSV export'),
+  'sauvegarde': ('Backup', 'Export and restore your hours'),
+  'comparateur': ('Rate comparator', 'Trade × 5 agreements'),
+  'salaire-annuel': ('Annual salary', 'Hourly → yearly'),
+  'retraite': ('Retirement', 'Project your complementary account'),
+  'vacances': ('Vacation & holidays', 'Allowance ~13%'),
+  'paie-nette': ('Net pay', 'Estimate deductions'),
+  'deplacement': ('Travel', 'Mileage and allowance'),
+  'rappel-retro': ('Retro pay', 'Back pay (new rate)'),
+  'convertisseur': ('Converter', 'Imperial ↔ metric'),
+  'fractions': ('Inch fractions', 'Decimal ↔ 1/16'),
+  'fractions-avancees': ('Advanced fractions', 'Add / subtract'),
+  'surface': ('Area', 'Rectangle, triangle, circle'),
+  'aires': ('Complex areas', 'Trapezoid, L-shape'),
+  'beton': ('Concrete', 'Volume, yd³, bags'),
+  'pente-tuyau': ('Pipe slope', 'Fall, drainage'),
+  'echelle': ('Ladder 4:1', 'Safe setback'),
+  'peinture': ('Paint', 'Litres and cans'),
+  'briques': ('Bricks & blocks', 'Count per area'),
+  'isolation': ('Insulation (R)', 'R-value and thickness'),
+  'cout': ('Material cost', 'Qty × price + taxes'),
+  'bardeaux': ('Shingles', 'Roofing, bundles'),
+  'gravier': ('Gravel & fill', 'Volume → tonnes'),
+  'ceramique': ('Tile', 'Tiles per area'),
+  'scellant': ('Sealant', 'Tubes per length'),
+  'coffrage': ('Wall formwork', 'Sheets and studs'),
+  'beton-avance': ('Advanced concrete', 'Slab, wall, column, footing'),
+  'pente-toit': ('Roof pitch', 'Rise/12, angle, %'),
+  'pente-conv': ('Slope converter', '% ↔ x/12 ↔ degrees'),
+  'escalier': ('Stairs', 'Risers and treads'),
+  'equerre': ('Square 3-4-5', 'Check a right angle'),
+  'materiaux': ('Materials', 'Studs and 4×8 sheets'),
+  'angles': ('Cut angles', 'Miter, corners'),
+  'solives': ('Joists', 'Spacing and count'),
+  'calculatrice': ('Calculator', 'The 4 operations'),
+  'convertisseur-avance': ('Advanced converter', 'Weight, temp., pressure…'),
+  'calculs-electriques': ('Electrical calc', 'Ohm\'s law, voltage drop'),
+  'couple-serrage': ('Torque', 'N·m, lb·ft, lb·in, kgf·m'),
+  'taux': ('Rates by trade', 'Current + upcoming rates'),
+  'syndicats': ('Unions', 'The 5 associations'),
+  'medic': ('MÉDIC Construction', 'Insurance and retirement'),
+  'securite': ('Health & safety', 'Site cheat sheet'),
+  'simdut': ('WHMIS 2015', 'Hazard pictograms'),
+  'lignes-electriques': ('Power lines', 'Approach distances'),
+  'conventions': ('Collective agreements', 'Offline, by sector'),
+  'feries': ('Statutory holidays', 'Paid holidays and vacation'),
+  'numeros': ('Useful numbers', 'CCQ, CNESST, emergency'),
+  'documentation': ('Documentation', 'Guides and info'),
+};
+
+/// Titre d'un outil dans la langue active.
+String outilTitre(Outil o) => tr(o.titre, _outilsEn[o.id]?.$1 ?? o.titre);
+
+/// Sous-titre d'un outil dans la langue active.
+String outilSousTitre(Outil o) => tr(o.sousTitre, _outilsEn[o.id]?.$2 ?? o.sousTitre);
+
+/// Titre d'une section dans la langue active (à partir du titre français).
+String sectionTitre(String fr) => tr(fr, _sectionsEn[fr] ?? fr);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/app_prefs.dart';
 import '../data/ccq_data.dart';
 import '../data/outils_registry.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import 'recherche_screen.dart';
@@ -60,13 +61,13 @@ class _Header extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final e in const [
-              (ThemeMode.system, 'Automatique', Icons.brightness_auto),
-              (ThemeMode.light, 'Clair', Icons.light_mode),
-              (ThemeMode.dark, 'Sombre', Icons.dark_mode),
+              (ThemeMode.system, 'Automatique', 'Automatic', Icons.brightness_auto),
+              (ThemeMode.light, 'Clair', 'Light', Icons.light_mode),
+              (ThemeMode.dark, 'Sombre', 'Dark', Icons.dark_mode),
             ])
               ListTile(
-                leading: Icon(e.$3),
-                title: Text(e.$2),
+                leading: Icon(e.$4),
+                title: Text(tr(e.$2, e.$3)),
                 trailing: AppPrefs.theme.value == e.$1
                     ? Icon(Icons.check,
                         color: Theme.of(ctx).colorScheme.primary)
@@ -108,18 +109,20 @@ class _Header extends StatelessWidget {
                         color: Colors.white, size: 30),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Calculatrice CCQ',
+                        const Text('Calculatrice CCQ',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 22,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.5)),
-                        Text('Ta boîte à outils de chantier',
-                            style: TextStyle(
+                        Text(
+                            tr('Ta boîte à outils de chantier',
+                                'Your jobsite toolbox'),
+                            style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500)),
@@ -127,14 +130,24 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Rechercher',
+                    tooltip: tr('Rechercher', 'Search'),
                     icon: const Icon(Icons.search, color: Colors.white),
                     onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (_) => const RechercheScreen())),
                   ),
                   IconButton(
-                    tooltip: 'Thème',
+                    tooltip: tr('English', 'Français'),
+                    icon: Text(estAnglais ? 'FR' : 'EN',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14)),
+                    onPressed: () =>
+                        AppPrefs.setLangue(estAnglais ? Lang.fr : Lang.en),
+                  ),
+                  IconButton(
+                    tooltip: tr('Thème', 'Theme'),
                     icon: const Icon(Icons.brightness_6, color: Colors.white),
                     onPressed: () => _choisirTheme(context),
                   ),
@@ -155,7 +168,7 @@ class _Header extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Taux CCQ officiels · ${CcqData.enVigueurTexte}',
+                        '${tr('Taux CCQ officiels', 'Official CCQ rates')} · ${CcqData.enVigueurTexte}',
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -192,8 +205,8 @@ class _SectionOutils extends StatelessWidget {
       height: _hauteur,
       child: ToolCard(
         icon: o.icon,
-        title: o.titre,
-        subtitle: o.sousTitre,
+        title: outilTitre(o),
+        subtitle: outilSousTitre(o),
         color: couleur,
         favori: AppPrefs.favoris.contient(o.id),
         onTap: () =>
@@ -204,8 +217,8 @@ class _SectionOutils extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 1200),
             content: Text(ajoute
-                ? '${o.titre} ajouté aux favoris ⭐'
-                : '${o.titre} retiré des favoris'),
+                ? '${outilTitre(o)} ${tr('ajouté aux favoris', 'added to favorites')} ⭐'
+                : '${outilTitre(o)} ${tr('retiré des favoris', 'removed from favorites')}'),
           ));
         },
       ),
@@ -233,7 +246,7 @@ class _SectionOutils extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionTitle(titre, color: couleur),
+          SectionTitle(sectionTitre(titre), color: couleur),
           ...rangs,
         ],
       ),

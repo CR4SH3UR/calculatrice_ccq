@@ -1,6 +1,6 @@
 {
-    "name": "calculatrice_ccq",
-    "short_name": "calculatrice_ccq",
+    "name": "Calculatrice CCQ",
+    "short_name": "Calculatrice CCQ",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

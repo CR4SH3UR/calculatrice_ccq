@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/lang.dart';
+
 /// Préférences de l'app : thème et outils favoris, persistés localement.
 class AppPrefs {
   const AppPrefs._();
@@ -8,6 +10,7 @@ class AppPrefs {
   static const String _cleTheme = 'theme_mode_v1';
   static const String _cleFavoris = 'favoris_v1';
   static const String _cleObjectif = 'objectif_hebdo_v1';
+  static const String _cleLangue = 'langue_v1';
 
   /// Mode de thème choisi (clair / sombre / système).
   static final ValueNotifier<ThemeMode> theme =
@@ -28,7 +31,15 @@ class AppPrefs {
       _ => ThemeMode.system,
     };
     objectifHebdo.value = prefs.getDouble(_cleObjectif) ?? 40;
+    langue.value = prefs.getString(_cleLangue) == 'en' ? Lang.en : Lang.fr;
     favoris._charger(prefs.getStringList(_cleFavoris) ?? const []);
+  }
+
+  /// Change la langue de l'interface (FR/EN) et la persiste.
+  static Future<void> setLangue(Lang l) async {
+    langue.value = l;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_cleLangue, l == Lang.en ? 'en' : 'fr');
   }
 
   static Future<void> setObjectif(double h) async {

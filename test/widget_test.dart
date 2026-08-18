@@ -12,6 +12,7 @@ import 'package:calculatrice_ccq/data/ccq_data.dart';
 import 'package:calculatrice_ccq/data/backup.dart';
 import 'package:calculatrice_ccq/data/feuille_csv.dart';
 import 'package:calculatrice_ccq/data/heures_store.dart';
+import 'package:calculatrice_ccq/l10n/lang.dart';
 import 'package:calculatrice_ccq/main.dart';
 import 'package:calculatrice_ccq/screens/calculs_plus.dart';
 import 'package:calculatrice_ccq/screens/paie_screens.dart';
@@ -40,6 +41,26 @@ void main() {
     expect(find.text('Calculs de chantier'), findsOneWidget);
     expect(find.text('Charpente & finition'), findsOneWidget);
     expect(find.text('Infos pour les gars'), findsOneWidget);
+  });
+
+  testWidgets('Bascule de langue : l\'accueil passe FR → EN',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(400, 3200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    addTearDown(() => langue.value = Lang.fr); // ne pas polluer les autres tests
+
+    langue.value = Lang.fr;
+    await tester.pumpWidget(const CalculatriceCcqApp());
+    await tester.pumpAndSettle();
+    expect(find.text('Paie & salaire'), findsOneWidget);
+    expect(find.text('Calculateur de paie'), findsOneWidget);
+
+    langue.value = Lang.en;
+    await tester.pumpAndSettle();
+    expect(find.text('Pay & wages'), findsOneWidget);
+    expect(find.text('Pay calculator'), findsOneWidget);
+    expect(find.text('Paie & salaire'), findsNothing);
   });
 
   testWidgets('Le titre de section colle à ses tuiles',

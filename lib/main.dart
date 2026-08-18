@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'data/app_prefs.dart';
 import 'data/heures_store.dart';
+import 'l10n/lang.dart';
 import 'screens/home_screen.dart';
 import 'theme/app_theme.dart';
 
@@ -17,15 +19,27 @@ class CalculatriceCcqApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppPrefs.theme,
-      builder: (context, mode, _) => MaterialApp(
-        title: 'Calculatrice CCQ',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: mode,
-        home: const HomeScreen(),
+    return ValueListenableBuilder<Lang>(
+      valueListenable: langue,
+      builder: (context, lg, _) => ValueListenableBuilder<ThemeMode>(
+        valueListenable: AppPrefs.theme,
+        builder: (context, mode, _) => MaterialApp(
+          title: 'Calculatrice CCQ',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: mode,
+          locale: Locale(lg == Lang.en ? 'en' : 'fr'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('fr'), Locale('en')],
+          // La clé liée à la langue force la reconstruction de l'accueil
+          // (et de son en-tête const) quand on bascule FR/EN.
+          home: HomeScreen(key: ValueKey(lg)),
+        ),
       ),
     );
   }
