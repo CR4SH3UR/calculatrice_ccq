@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../data/ccq_data.dart';
 import '../data/heures_store.dart';
+import '../l10n/lang.dart';
 import '../services/ccq_api_client.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
@@ -25,7 +26,7 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
   final _demiCtrl = TextEditingController();
   final _doubleCtrl = TextEditingController();
 
-  String _mode = 'Mon taux';
+  bool _parMetier = false;
   Metier _metier = CcqData.metiers[3];
   int _palierIndex = 999; // clampé au dernier palier (compagnon) par défaut
   Secteur _secteur = Secteur.institutionnelCommercial;
@@ -65,7 +66,8 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
 
   Future<void> _noterHeures(double taux, double hN, double h15, double h2) async {
     if (hN + h15 + h2 <= 0) {
-      _snack('Entre des heures avant de les noter.');
+      _snack(tr('Entre des heures avant de les noter.',
+          'Enter hours before logging them.'));
       return;
     }
     await HeuresStore.instance.ajouter(HeureEntry(
@@ -75,16 +77,18 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
       hNormal: hN,
       h15: h15,
       h2: h2,
-      metier: _mode == 'Par métier' ? _metier.nom : '',
-      secteur: _mode == 'Par métier' ? _secteur.court : '',
+      metier: _parMetier ? _metier.nom : '',
+      secteur: _parMetier ? _secteur.court : '',
     ));
-    _snack('Ajouté à ta feuille de temps ✓');
+    _snack(tr('Ajouté à ta feuille de temps ✓', 'Added to your timesheet ✓'));
   }
 
   Future<void> _rafraichir() async {
     if (kIsWeb) {
-      _snack('Le rafraîchissement en direct fonctionne sur mobile — '
-          'le web bloque l\'appel à la CCQ (CORS).');
+      _snack(tr(
+          'Le rafraîchissement en direct fonctionne sur mobile — le web bloque '
+              'l\'appel à la CCQ (CORS).',
+          'Live refresh works on mobile — the web blocks the CCQ call (CORS).'));
       return;
     }
     setState(() => _sync = true);
@@ -93,8 +97,11 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
     if (!mounted) return;
     setState(() => _sync = false);
     if (taux == null) {
-      _snack('Impossible de récupérer le taux (réseau, ou horaire/occupation '
-          'absent dans cette grille).');
+      _snack(tr(
+          'Impossible de récupérer le taux (réseau, ou horaire/occupation '
+              'absent dans cette grille).',
+          'Could not fetch the rate (network, or schedule/occupation not in '
+              'this grid).'));
       return;
     }
     setState(() {
@@ -107,7 +114,8 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
         _compFetchedCtx = _contexte;
       }
     });
-    _snack('Taux ${_contexte.label.toLowerCase()} récupéré : '
+    _snack(
+        '${tr('Taux', 'Rate')} ${_contexte.label.toLowerCase()} ${tr('récupéré', 'fetched')} : '
         '${Fmt.money(taux)}/h ✓');
   }
 
@@ -127,7 +135,7 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
   double get _prime => parseNum(_primeCtrl.text) ?? 0;
 
   double get _tauxBase {
-    if (_mode == 'Mon taux') return parseNum(_tauxCtrl.text) ?? 0;
+    if (!_parMetier) return parseNum(_tauxCtrl.text) ?? 0;
     final double comp = (_contexte != ContexteTravail.jour &&
             _compFetchedCtx == _contexte &&
             _compFetched != null)
@@ -162,21 +170,24 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
     final double retenues = impot + rrq + ae + rqap + autres;
     final double net = brut - retenues;
 
+    final String monTaux = tr('Mon taux', 'My rate');
+    final String parMetier = tr('Par métier', 'By trade');
+
     return ToolScaffold(
-      title: 'Calculateur de paie',
+      title: tr('Calculateur de paie', 'Pay calculator'),
       children: [
         ChoiceSegments(
-          options: const ['Mon taux', 'Par métier'],
-          selected: _mode,
-          onChanged: (v) => setState(() => _mode = v),
+          options: [monTaux, parMetier],
+          selected: _parMetier ? parMetier : monTaux,
+          onChanged: (v) => setState(() => _parMetier = v == parMetier),
         ),
         const SizedBox(height: 16),
-        if (_mode == 'Mon taux')
+        if (!_parMetier)
           NumberField(
             controller: _tauxCtrl,
-            label: 'Mon taux horaire',
+            label: tr('Mon taux horaire', 'My hourly rate'),
             suffix: '\$/h',
-            hint: 'ex. 43,90',
+            hint: tr('ex. 43,90', 'e.g. 43.90'),
             onChanged: (_) => setState(() {}),
           )
         else ...[
@@ -205,7 +216,7 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
             onChanged: (i) => setState(() => _palierIndex = i),
           ),
           const SizedBox(height: 12),
-          Text('Horaire de travail',
+          Text(tr('Horaire de travail', 'Work schedule'),
               style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: Theme.of(context)
@@ -222,19 +233,21 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
           const SizedBox(height: 12),
           InfoBanner(
             text:
-                'Convention ${_secteur.nom} — horaire ${_contexte.label.toLowerCase()} · '
-                'palier ${_palier.pourcentage} % = ${Fmt.money(_tauxBase)}/h. '
-                '${CcqData.enVigueurTexte} · à valider sur ${CcqData.siteWeb}.'
+                '${tr('Convention', 'Agreement')} ${_secteur.nom} — ${tr('horaire', 'schedule')} ${_contexte.label.toLowerCase()} · '
+                '${tr('palier', 'level')} ${_palier.pourcentage} % = ${Fmt.money(_tauxBase)}/h. '
+                '${CcqData.enVigueurTexte} · ${tr('à valider sur', 'verify at')} ${CcqData.siteWeb}.'
                 '${_secteur.note != null ? '\n${_secteur.note}' : ''}',
           ),
           if (_contexte != ContexteTravail.jour &&
               !(_compFetchedCtx == _contexte && _compFetched != null)) ...[
             const SizedBox(height: 8),
             InfoBanner(
-              text:
+              text: tr(
                   'Taux ${_contexte.label.toLowerCase()} : touche « Rafraîchir » '
-                  'pour le chiffre officiel (mobile). En attendant, le taux de '
-                  'jour est affiché à titre indicatif.',
+                      'pour le chiffre officiel (mobile). En attendant, le taux '
+                      'de jour est affiché à titre indicatif.',
+                  'Tap « Refresh » for the official ${_contexte.label.toLowerCase()} '
+                      'rate (mobile). Meanwhile, the day rate is shown as a guide.'),
               icon: Icons.nightlight_round,
             ),
           ],
@@ -248,8 +261,8 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.sync),
             label: Text(_sync
-                ? 'Récupération…'
-                : 'Rafraîchir le taux ${_contexte.label.toLowerCase()} (mobile)'),
+                ? tr('Récupération…', 'Fetching…')
+                : '${tr('Rafraîchir le taux', 'Refresh the')} ${_contexte.label.toLowerCase()} ${tr('(mobile)', 'rate (mobile)')}'),
             style:
                 OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
           ),
@@ -263,8 +276,10 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
                   const Icon(Icons.verified,
                       size: 16, color: AppColors.success),
                   const SizedBox(width: 6),
-                  Text('Taux vérifié en direct auprès de la CCQ',
-                      style: TextStyle(
+                  Text(
+                      tr('Taux vérifié en direct auprès de la CCQ',
+                          'Rate verified live with the CCQ'),
+                      style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.success,
                           fontWeight: FontWeight.w600)),
@@ -275,50 +290,63 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
         const SizedBox(height: 12),
         NumberField(
           controller: _primeCtrl,
-          label: 'Prime horaire (nuit, hauteur, etc.)',
+          label: tr('Prime horaire (nuit, hauteur, etc.)',
+              'Hourly premium (night, height, etc.)'),
           suffix: '\$/h',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 20),
-        const SectionTitle('Heures travaillées', color: AppColors.paie),
+        SectionTitle(tr('Heures travaillées', 'Hours worked'),
+            color: AppColors.paie),
         NumberField(
           controller: _normalCtrl,
-          label: 'Heures normales (×1)',
+          label: tr('Heures normales (×1)', 'Regular hours (×1)'),
           suffix: 'h',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
         NumberField(
           controller: _demiCtrl,
-          label: 'Temps et demi (×1,5)',
+          label: tr('Temps et demi (×1,5)', 'Time and a half (×1.5)'),
           suffix: 'h',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
         NumberField(
           controller: _doubleCtrl,
-          label: 'Temps double (×2)',
+          label: tr('Temps double (×2)', 'Double time (×2)'),
           suffix: 'h',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Salaire brut',
+          label: tr('Salaire brut', 'Gross pay'),
           value: Fmt.money(brut),
           color: AppColors.paie,
           icon: Icons.payments,
           details: [
-            ResultLine('Taux horaire', '${Fmt.money(taux)}/h'),
-            ResultLine('Total des heures', '${Fmt.trim(heures)} h'),
+            ResultLine(tr('Taux horaire', 'Hourly rate'), '${Fmt.money(taux)}/h'),
+            ResultLine(tr('Total des heures', 'Total hours'),
+                '${Fmt.trim(heures)} h'),
             if (payN > 0)
-              ResultLine('Normales (${Fmt.trim(hN)} h)', Fmt.money(payN)),
+              ResultLine('${tr('Normales', 'Regular')} (${Fmt.trim(hN)} h)',
+                  Fmt.money(payN)),
             if (pay15 > 0)
-              ResultLine('Temps et demi (${Fmt.trim(h15)} h)', Fmt.money(pay15)),
+              ResultLine(
+                  '${tr('Temps et demi', 'Time and a half')} (${Fmt.trim(h15)} h)',
+                  Fmt.money(pay15)),
             if (pay2 > 0)
-              ResultLine('Temps double (${Fmt.trim(h2)} h)', Fmt.money(pay2)),
-            ResultLine('Salaire brut', Fmt.money(brut), strong: true),
-            ResultLine('Indemnité congés (13 %)', Fmt.money(conges)),
-            ResultLine('Brut + congés', Fmt.money(avecConges), strong: true),
+              ResultLine(
+                  '${tr('Temps double', 'Double time')} (${Fmt.trim(h2)} h)',
+                  Fmt.money(pay2)),
+            ResultLine(tr('Salaire brut', 'Gross pay'), Fmt.money(brut),
+                strong: true),
+            ResultLine(
+                tr('Indemnité congés (13 %)', 'Holiday pay (13%)'),
+                Fmt.money(conges)),
+            ResultLine(tr('Brut + congés', 'Gross + holiday'),
+                Fmt.money(avecConges),
+                strong: true),
           ],
         ),
         const SizedBox(height: 12),
@@ -326,7 +354,7 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
           onPressed: () => _noterHeures(taux, hN, h15, h2),
           style: FilledButton.styleFrom(backgroundColor: AppColors.paie),
           icon: const Icon(Icons.post_add),
-          label: const Text('Noter ces heures'),
+          label: Text(tr('Noter ces heures', 'Log these hours')),
         ),
         const SizedBox(height: 12),
         Card(
@@ -338,42 +366,50 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
               onExpansionChanged: (v) => setState(() => _montrerNet = v),
               leading: const Icon(Icons.account_balance_wallet,
                   color: AppColors.paie),
-              title: const Text('Estimation de la paie nette',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: Text('Net estimé : ${Fmt.money(net)}',
+              title: Text(tr('Estimation de la paie nette', 'Net pay estimate'),
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
+              subtitle: Text(
+                  '${tr('Net estimé', 'Estimated net')} : ${Fmt.money(net)}',
                   style: const TextStyle(
                       color: AppColors.paie, fontWeight: FontWeight.w700)),
               childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               children: [
-                const InfoBanner(
-                  text:
+                InfoBanner(
+                  text: tr(
                       '⚠️ Estimation. Ajuste les taux : ils dépendent des '
-                      'paliers d\'impôt, des maximums annuels et des '
-                      'prélèvements de ta convention (syndicat, régime, '
-                      'assurances).',
+                          'paliers d\'impôt, des maximums annuels et des '
+                          'prélèvements de ta convention (syndicat, régime, '
+                          'assurances).',
+                      '⚠️ Estimate. Adjust the rates: they depend on tax '
+                          'brackets, annual maximums and your agreement\'s '
+                          'deductions (union, plan, insurance).'),
                   color: AppColors.danger,
                 ),
                 const SizedBox(height: 12),
-                _pct(_impotCtrl, 'Impôt combiné (féd. + prov.)'),
-                _pct(_rrqCtrl, 'RRQ'),
-                _pct(_aeCtrl, 'Assurance-emploi'),
-                _pct(_rqapCtrl, 'RQAP'),
+                _pct(_impotCtrl,
+                    tr('Impôt combiné (féd. + prov.)', 'Combined tax (fed. + prov.)')),
+                _pct(_rrqCtrl, tr('RRQ', 'QPP')),
+                _pct(_aeCtrl, tr('Assurance-emploi', 'Employment insurance')),
+                _pct(_rqapCtrl, tr('RQAP', 'QPIP')),
                 NumberField(
                   controller: _autresCtrl,
-                  label: 'Autres retenues (syndicat, régime…)',
+                  label: tr('Autres retenues (syndicat, régime…)',
+                      'Other deductions (union, plan…)'),
                   suffix: '\$',
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 14),
                 ResultCard(
-                  label: 'Paie nette estimée',
+                  label: tr('Paie nette estimée', 'Estimated net pay'),
                   value: Fmt.money(net),
                   color: AppColors.paie,
                   icon: Icons.account_balance_wallet,
                   details: [
-                    ResultLine('Salaire brut', Fmt.money(brut)),
-                    ResultLine('Total des retenues', '- ${Fmt.money(retenues)}'),
-                    ResultLine('Net estimé', Fmt.money(net), strong: true),
+                    ResultLine(tr('Salaire brut', 'Gross pay'), Fmt.money(brut)),
+                    ResultLine(tr('Total des retenues', 'Total deductions'),
+                        '- ${Fmt.money(retenues)}'),
+                    ResultLine(tr('Net estimé', 'Estimated net'), Fmt.money(net),
+                        strong: true),
                   ],
                 ),
               ],
@@ -410,7 +446,7 @@ class _PalierDropdown extends StatelessWidget {
     return DropdownButtonFormField<int>(
       initialValue: selectedIndex,
       isExpanded: true,
-      decoration: const InputDecoration(labelText: 'Palier'),
+      decoration: InputDecoration(labelText: tr('Palier', 'Level')),
       items: [
         for (int i = 0; i < paliers.length; i++)
           DropdownMenuItem(
@@ -433,9 +469,9 @@ class _SecteurDropdown extends StatelessWidget {
     return DropdownButtonFormField<Secteur>(
       initialValue: secteur,
       isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Convention (secteur)',
-        prefixIcon: Icon(Icons.description_outlined),
+      decoration: InputDecoration(
+        labelText: tr('Convention (secteur)', 'Agreement (sector)'),
+        prefixIcon: const Icon(Icons.description_outlined),
       ),
       items: Secteur.values
           .map((s) => DropdownMenuItem(
@@ -478,41 +514,45 @@ class _VacancesScreenState extends State<VacancesScreen> {
     final double indemnite = brut * pct / 100;
 
     return ToolScaffold(
-      title: 'Vacances & congés',
+      title: tr('Vacances & congés', 'Vacation & holidays'),
       children: [
-        const InfoBanner(
-          text:
-              'Dans la construction, l\'indemnité de congés annuels et de '
-              'jours fériés est généralement d\'environ 13 % du salaire brut. '
-              'Le pourcentage exact dépend de ta convention — ajuste-le au '
-              'besoin.',
+        InfoBanner(
+          text: tr(
+              'Dans la construction, l\'indemnité de congés annuels et de jours '
+                  'fériés est généralement d\'environ 13 % du salaire brut. Le '
+                  'pourcentage exact dépend de ta convention — ajuste-le au besoin.',
+              'In construction, the annual vacation and statutory holiday '
+                  'allowance is usually about 13% of gross pay. The exact '
+                  'percentage depends on your agreement — adjust as needed.'),
         ),
         const SizedBox(height: 18),
         NumberField(
           controller: _brutCtrl,
-          label: 'Salaire brut de la période',
+          label: tr('Salaire brut de la période', 'Gross pay for the period'),
           suffix: '\$',
-          hint: 'ex. 2 500',
+          hint: tr('ex. 2 500', 'e.g. 2,500'),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
         NumberField(
           controller: _pctCtrl,
-          label: 'Pourcentage d\'indemnité',
+          label: tr('Pourcentage d\'indemnité', 'Allowance percentage'),
           suffix: '%',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Indemnité de congés',
+          label: tr('Indemnité de congés', 'Holiday allowance'),
           value: Fmt.money(indemnite),
           color: AppColors.paie,
           icon: Icons.beach_access,
           details: [
-            ResultLine('Salaire brut', Fmt.money(brut)),
-            ResultLine('Taux appliqué', Fmt.percent(pct)),
-            ResultLine('Indemnité', Fmt.money(indemnite), strong: true),
-            ResultLine('Brut + indemnité', Fmt.money(brut + indemnite)),
+            ResultLine(tr('Salaire brut', 'Gross pay'), Fmt.money(brut)),
+            ResultLine(tr('Taux appliqué', 'Applied rate'), Fmt.percent(pct)),
+            ResultLine(tr('Indemnité', 'Allowance'), Fmt.money(indemnite),
+                strong: true),
+            ResultLine(tr('Brut + indemnité', 'Gross + allowance'),
+                Fmt.money(brut + indemnite)),
           ],
         ),
       ],
@@ -566,53 +606,62 @@ class _PaieNetteScreenState extends State<PaieNetteScreen> {
     final double net = brut - retenues;
 
     return ToolScaffold(
-      title: 'Paie nette (estimation)',
+      title: tr('Paie nette (estimation)', 'Net pay (estimate)'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               '⚠️ ESTIMATION SEULEMENT. Les vraies retenues dépendent des '
-              'paliers d\'imposition, des maximums annuels (RRQ, AE, RQAP) et '
-              'des prélèvements de ta convention (syndicat, régime de '
-              'retraite, assurances). Ajuste les taux et vois ton relevé de '
-              'paie officiel.',
+                  'paliers d\'imposition, des maximums annuels (RRQ, AE, RQAP) '
+                  'et des prélèvements de ta convention (syndicat, régime de '
+                  'retraite, assurances). Ajuste les taux et vois ton relevé de '
+                  'paie officiel.',
+              '⚠️ ESTIMATE ONLY. Actual deductions depend on tax brackets, '
+                  'annual maximums (QPP, EI, QPIP) and your agreement\'s '
+                  'deductions (union, pension plan, insurance). Adjust the rates '
+                  'and check your official pay stub.'),
           color: AppColors.danger,
         ),
         const SizedBox(height: 18),
         NumberField(
           controller: _brutCtrl,
-          label: 'Salaire brut',
+          label: tr('Salaire brut', 'Gross pay'),
           suffix: '\$',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 20),
-        const SectionTitle('Retenues (taux ajustables)',
+        SectionTitle(tr('Retenues (taux ajustables)', 'Deductions (adjustable)'),
             color: AppColors.paie),
-        _pctRow(_impotCtrl, 'Impôt combiné (féd. + prov.)'),
-        _pctRow(_rrqCtrl, 'RRQ (régime de rentes)'),
-        _pctRow(_aeCtrl, 'Assurance-emploi (AE)'),
-        _pctRow(_rqapCtrl, 'RQAP'),
+        _pctRow(_impotCtrl,
+            tr('Impôt combiné (féd. + prov.)', 'Combined tax (fed. + prov.)')),
+        _pctRow(_rrqCtrl, tr('RRQ (régime de rentes)', 'QPP (pension plan)')),
+        _pctRow(_aeCtrl, tr('Assurance-emploi (AE)', 'Employment insurance (EI)')),
+        _pctRow(_rqapCtrl, tr('RQAP', 'QPIP')),
         const SizedBox(height: 12),
         NumberField(
           controller: _autresCtrl,
-          label: 'Autres retenues (syndicat, régime, assurances)',
+          label: tr('Autres retenues (syndicat, régime, assurances)',
+              'Other deductions (union, plan, insurance)'),
           suffix: '\$',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Paie nette estimée',
+          label: tr('Paie nette estimée', 'Estimated net pay'),
           value: Fmt.money(net),
           color: AppColors.paie,
           icon: Icons.account_balance_wallet,
           details: [
-            ResultLine('Salaire brut', Fmt.money(brut)),
-            ResultLine('Impôt', '- ${Fmt.money(impot)}'),
-            ResultLine('RRQ', '- ${Fmt.money(rrq)}'),
-            ResultLine('AE', '- ${Fmt.money(ae)}'),
-            ResultLine('RQAP', '- ${Fmt.money(rqap)}'),
-            if (autres > 0) ResultLine('Autres', '- ${Fmt.money(autres)}'),
-            ResultLine('Total des retenues', '- ${Fmt.money(retenues)}'),
-            ResultLine('Net estimé', Fmt.money(net), strong: true),
+            ResultLine(tr('Salaire brut', 'Gross pay'), Fmt.money(brut)),
+            ResultLine(tr('Impôt', 'Tax'), '- ${Fmt.money(impot)}'),
+            ResultLine(tr('RRQ', 'QPP'), '- ${Fmt.money(rrq)}'),
+            ResultLine(tr('AE', 'EI'), '- ${Fmt.money(ae)}'),
+            ResultLine(tr('RQAP', 'QPIP'), '- ${Fmt.money(rqap)}'),
+            if (autres > 0)
+              ResultLine(tr('Autres', 'Other'), '- ${Fmt.money(autres)}'),
+            ResultLine(tr('Total des retenues', 'Total deductions'),
+                '- ${Fmt.money(retenues)}'),
+            ResultLine(tr('Net estimé', 'Estimated net'), Fmt.money(net),
+                strong: true),
           ],
         ),
       ],
@@ -665,19 +714,22 @@ class _DeplacementScreenState extends State<DeplacementScreen> {
     final double total = kmParJour * taux * jours;
 
     return ToolScaffold(
-      title: 'Frais de déplacement',
+      title: tr('Frais de déplacement', 'Travel expenses'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Calcul simple : distance × taux du kilomètre × nombre de jours. '
-              'Les conventions de la construction ont aussi des règles de '
-              'zones, de transport et de pension (chambre/pension) — vérifie '
-              'ta convention pour les indemnités exactes.',
+                  'Les conventions de la construction ont aussi des règles de '
+                  'zones, de transport et de pension (chambre/pension) — vérifie '
+                  'ta convention pour les indemnités exactes.',
+              'Simple calc: distance × per-km rate × number of days. '
+                  'Construction agreements also have zone, transport and room & '
+                  'board rules — check your agreement for the exact allowances.'),
         ),
         const SizedBox(height: 18),
         NumberField(
           controller: _kmCtrl,
-          label: 'Distance (un sens)',
+          label: tr('Distance (un sens)', 'Distance (one way)'),
           suffix: 'km',
           onChanged: (_) => setState(() {}),
         ),
@@ -685,10 +737,10 @@ class _DeplacementScreenState extends State<DeplacementScreen> {
         SwitchListTile(
           value: _allerRetour,
           onChanged: (v) => setState(() => _allerRetour = v),
-          title: const Text('Aller-retour'),
+          title: Text(tr('Aller-retour', 'Round trip')),
           subtitle: Text(_allerRetour
-              ? 'La distance est comptée ×2'
-              : 'Distance comptée une seule fois'),
+              ? tr('La distance est comptée ×2', 'Distance counted ×2')
+              : tr('Distance comptée une seule fois', 'Distance counted once')),
           contentPadding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12)),
@@ -696,29 +748,30 @@ class _DeplacementScreenState extends State<DeplacementScreen> {
         const SizedBox(height: 12),
         NumberField(
           controller: _tauxCtrl,
-          label: 'Taux du kilomètre',
+          label: tr('Taux du kilomètre', 'Per-km rate'),
           suffix: '\$/km',
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 12),
         NumberField(
           controller: _joursCtrl,
-          label: 'Nombre de jours',
-          suffix: 'j',
+          label: tr('Nombre de jours', 'Number of days'),
+          suffix: tr('j', 'd'),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Indemnité de déplacement',
+          label: tr('Indemnité de déplacement', 'Travel allowance'),
           value: Fmt.money(total),
           color: AppColors.paie,
           icon: Icons.directions_car,
           details: [
-            ResultLine('Distance par jour', '${Fmt.trim(kmParJour)} km'),
-            ResultLine('Taux', '${Fmt.money(taux)}/km'),
-            ResultLine('Par jour', Fmt.money(kmParJour * taux)),
-            ResultLine('Jours', Fmt.trim(jours)),
-            ResultLine('Total', Fmt.money(total), strong: true),
+            ResultLine(tr('Distance par jour', 'Distance per day'),
+                '${Fmt.trim(kmParJour)} km'),
+            ResultLine(tr('Taux', 'Rate'), '${Fmt.money(taux)}/km'),
+            ResultLine(tr('Par jour', 'Per day'), Fmt.money(kmParJour * taux)),
+            ResultLine(tr('Jours', 'Days'), Fmt.trim(jours)),
+            ResultLine(tr('Total', 'Total'), Fmt.money(total), strong: true),
           ],
         ),
       ],
