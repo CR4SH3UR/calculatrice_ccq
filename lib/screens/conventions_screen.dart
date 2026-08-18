@@ -6,31 +6,38 @@ import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 
 /// Une convention collective téléchargeable (PDF officiel de la CCQ).
 class _Convention {
-  const _Convention(
-      this.secteur, this.sousTitre, this.code, this.url, this.taille);
-  final String secteur;
-  final String sousTitre;
-  final String code; // nom du fichier local
+  const _Convention(this.secteurFr, this.secteurEn, this.sousTitreFr,
+      this.sousTitreEn, this.code, this.url, this.taille);
+  final String secteurFr, secteurEn;
+  final String sousTitreFr, sousTitreEn;
+  final String code;
   final String url;
   final String taille;
+
+  String get secteur => tr(secteurFr, secteurEn);
+  String get sousTitre => tr(sousTitreFr, sousTitreEn);
 }
 
 const String _base =
     'https://www.ccq.org/-/media/Project/Ccq/Ccq-Website/PDF/ConventionsCollectives/2025-2029';
 
 const List<_Convention> _conventions = [
-  _Convention('Résidentiel', 'Léger et lourd', 'residentiel-2025-2029',
-      '$_base/110455-110439-PD5147.pdf', '3,9 Mo'),
-  _Convention('Institutionnel-commercial', 'Secteur I.C.', 'ic-2025-2029',
+  _Convention('Résidentiel', 'Residential', 'Léger et lourd', 'Light and heavy',
+      'residentiel-2025-2029', '$_base/110455-110439-PD5147.pdf', '3,9 Mo'),
+  _Convention('Institutionnel-commercial', 'Institutional-commercial',
+      'Secteur I.C.', 'I.C. sector', 'ic-2025-2029',
       '$_base/110454-110438-PD5145.pdf', '3,4 Mo'),
-  _Convention('Industriel', 'Usines et procédés', 'industriel-2025-2029',
+  _Convention('Industriel', 'Industrial', 'Usines et procédés',
+      'Plants and processes', 'industriel-2025-2029',
       '$_base/110453-110437-PD5144.pdf', '4,6 Mo'),
-  _Convention('Génie civil et voirie', 'Secteur G.C.V.', 'genie-civil-2025-2029',
+  _Convention('Génie civil et voirie', 'Civil engineering and roads',
+      'Secteur G.C.V.', 'C.E.R. sector', 'genie-civil-2025-2029',
       '$_base/110452-110436-PD5146.pdf', '4,3 Mo'),
 ];
 
@@ -51,12 +58,19 @@ class _ConventionsScreenState extends State<ConventionsScreen> {
     _rafraichir();
   }
 
+  /// Fichier local, distinct par langue (l'anglais et le français sont deux
+  /// documents séparés côté CCQ).
   Future<File> _fichier(_Convention c) async {
     final dir = await getApplicationDocumentsDirectory();
     final d = Directory('${dir.path}/conventions');
     if (!await d.exists()) await d.create(recursive: true);
-    return File('${d.path}/${c.code}.pdf');
+    final lang = estAnglais ? 'en' : 'fr';
+    return File('${d.path}/${c.code}-$lang.pdf');
   }
+
+  /// URL de téléchargement : ajoute « ?sc_lang=en » en anglais. Tant que la
+  /// CCQ n'a pas publié l'anglais, cette URL renvoie le français (repli).
+  String _url(_Convention c) => estAnglais ? '${c.url}?sc_lang=en' : c.url;
 
   Future<void> _rafraichir() async {
     for (final c in _conventions) {
@@ -70,21 +84,24 @@ class _ConventionsScreenState extends State<ConventionsScreen> {
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _enCours.add(c.code));
     try {
-      final resp = await http.get(Uri.parse(c.url),
+      final resp = await http.get(Uri.parse(_url(c)),
           headers: {'User-Agent': 'CalculatriceCCQ'});
       if (resp.statusCode == 200 && resp.bodyBytes.length > 1000) {
         final f = await _fichier(c);
         await f.writeAsBytes(resp.bodyBytes);
         _telecharges.add(c.code);
         messenger.showSnackBar(SnackBar(
-            content: Text('${c.secteur} — téléchargée, dispo hors ligne.')));
+            content: Text(
+                '${c.secteur} — ${tr('téléchargée, dispo hors ligne.', 'downloaded, available offline.')}')));
       } else {
         messenger.showSnackBar(SnackBar(
-            content: Text('Échec du téléchargement (code ${resp.statusCode}).')));
+            content: Text(
+                '${tr('Échec du téléchargement', 'Download failed')} (${resp.statusCode}).')));
       }
     } catch (_) {
-      messenger.showSnackBar(const SnackBar(
-          content: Text('Téléchargement impossible — vérifie ta connexion.')));
+      messenger.showSnackBar(SnackBar(
+          content: Text(tr('Téléchargement impossible — vérifie ta connexion.',
+              'Download failed — check your connection.'))));
     } finally {
       if (mounted) setState(() => _enCours.remove(c.code));
     }
@@ -95,16 +112,17 @@ class _ConventionsScreenState extends State<ConventionsScreen> {
     final f = await _fichier(c);
     final res = await OpenFilex.open(f.path, type: 'application/pdf');
     if (res.type != ResultType.done) {
-      messenger.showSnackBar(const SnackBar(
-          content: Text(
-              'Aucun lecteur PDF trouvé — utilise « Partager » pour l\'enregistrer.')));
+      messenger.showSnackBar(SnackBar(
+          content: Text(tr(
+              'Aucun lecteur PDF trouvé — utilise « Partager » pour l\'enregistrer.',
+              'No PDF reader found — use « Share » to save it.'))));
     }
   }
 
   Future<void> _partager(_Convention c) async {
     final f = await _fichier(c);
     await Share.shareXFiles([XFile(f.path, mimeType: 'application/pdf')],
-        subject: 'Convention ${c.secteur}');
+        subject: '${tr('Convention', 'Agreement')} ${c.secteur}');
   }
 
   Future<void> _supprimer(_Convention c) async {
@@ -116,16 +134,31 @@ class _ConventionsScreenState extends State<ConventionsScreen> {
   @override
   Widget build(BuildContext context) {
     return ToolScaffold(
-      title: 'Conventions collectives',
+      title: tr('Conventions collectives', 'Collective agreements'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Télécharge la convention de ton secteur : elle reste ensuite '
-              'disponible hors ligne dans l\'app. Utilise « Partager » pour '
-              'l\'enregistrer dans tes fichiers ou l\'ouvrir hors de l\'app.',
+                  'disponible hors ligne dans l\'app. Utilise « Partager » pour '
+                  'l\'enregistrer dans tes fichiers ou l\'ouvrir hors de l\'app.',
+              'Download your sector\'s agreement: it then stays available '
+                  'offline in the app. Use « Share » to save it to your files or '
+                  'open it outside the app.'),
           color: AppColors.infos,
           icon: Icons.download_for_offline,
         ),
+        if (estAnglais) ...[
+          const SizedBox(height: 10),
+          const InfoBanner(
+            text:
+                'The official English 2025-2029 agreements are « coming soon » '
+                'from the CCQ. Meanwhile the French version (currently in force) '
+                'is provided — the app will pick up the English one '
+                'automatically once the CCQ publishes it.',
+            color: AppColors.warning,
+            icon: Icons.translate,
+          ),
+        ],
         const SizedBox(height: 16),
         ..._conventions.map((c) => _ConventionCard(
               conv: c,
@@ -137,11 +170,14 @@ class _ConventionsScreenState extends State<ConventionsScreen> {
               onSupprimer: () => _supprimer(c),
             )),
         const SizedBox(height: 8),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Conventions collectives 2025-2029 de l\'industrie de la '
-              'construction (CCQ). Documents officiels — en cas d\'écart avec '
-              'l\'app, c\'est la convention qui fait foi.',
+                  'construction (CCQ). Documents officiels — en cas d\'écart '
+                  'avec l\'app, c\'est la convention qui fait foi.',
+              '2025-2029 collective agreements of the construction industry '
+                  '(CCQ). Official documents — in case of any discrepancy with '
+                  'the app, the agreement prevails.'),
         ),
       ],
     );
@@ -211,14 +247,14 @@ class _ConventionCard extends StatelessWidget {
                       color: AppColors.success.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.offline_pin,
+                        const Icon(Icons.offline_pin,
                             size: 14, color: AppColors.success),
-                        SizedBox(width: 4),
-                        Text('hors ligne',
-                            style: TextStyle(
+                        const SizedBox(width: 4),
+                        Text(tr('hors ligne', 'offline'),
+                            style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.success)),
@@ -236,7 +272,7 @@ class _ConventionCard extends StatelessWidget {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2)),
                   const SizedBox(width: 12),
-                  Text('Téléchargement…',
+                  Text(tr('Téléchargement…', 'Downloading…'),
                       style: TextStyle(
                           fontSize: 13, color: onSurf.withValues(alpha: 0.7))),
                 ],
@@ -248,20 +284,20 @@ class _ConventionCard extends StatelessWidget {
                     child: FilledButton.tonalIcon(
                       onPressed: onOuvrir,
                       icon: const Icon(Icons.picture_as_pdf, size: 18),
-                      label: const Text('Ouvrir'),
+                      label: Text(tr('Ouvrir', 'Open')),
                     ),
                   ),
                   const SizedBox(width: 8),
                   IconButton.filledTonal(
                     onPressed: onPartager,
                     icon: const Icon(Icons.ios_share, size: 20),
-                    tooltip: 'Partager / enregistrer',
+                    tooltip: tr('Partager / enregistrer', 'Share / save'),
                   ),
                   const SizedBox(width: 4),
                   IconButton(
                     onPressed: onSupprimer,
                     icon: const Icon(Icons.delete_outline, size: 20),
-                    tooltip: 'Supprimer',
+                    tooltip: tr('Supprimer', 'Delete'),
                   ),
                 ],
               )
@@ -271,7 +307,7 @@ class _ConventionCard extends StatelessWidget {
                 child: FilledButton.tonalIcon(
                   onPressed: onTelecharger,
                   icon: const Icon(Icons.download, size: 18),
-                  label: Text('Télécharger (${conv.taille})'),
+                  label: Text('${tr('Télécharger', 'Download')} (${conv.taille})'),
                 ),
               ),
           ],
