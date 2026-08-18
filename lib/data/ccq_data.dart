@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
+
 /// Les grilles de taux de l'industrie de la construction au Québec.
 ///
 /// La construction compte 4 secteurs (chacun sa convention collective).
@@ -12,17 +14,28 @@ import 'package:flutter/material.dart';
 ///  • Génie civil et voirie : taux « arrimés » avec l'I.C. depuis le
 ///    26 avril 2026 (secteur avec ses propres horaires jour/nuit et primes).
 enum Secteur {
-  residentielLeger('Résidentiel léger', 'Rés. léger', null),
-  residentielLourd('Résidentiel lourd', 'Rés. lourd', null),
-  institutionnelCommercial('Institutionnel-commercial', 'I.C.', null),
-  industriel('Industriel', 'Ind.', 'Taux de salaire harmonisés avec l\'I.C.'),
-  genieCivilVoirie('Génie civil et voirie', 'G.C.V.',
-      'Le secteur a ses propres taux, horaires jour/nuit et primes. Taux de jour affichés.');
+  residentielLeger('Résidentiel léger', 'Light residential', 'Rés. léger',
+      'Res. light', null, null),
+  residentielLourd('Résidentiel lourd', 'Heavy residential', 'Rés. lourd',
+      'Res. heavy', null, null),
+  institutionnelCommercial('Institutionnel-commercial',
+      'Institutional-commercial', 'I.C.', 'I.C.', null, null),
+  industriel('Industriel', 'Industrial', 'Ind.', 'Ind.',
+      'Taux de salaire harmonisés avec l\'I.C.',
+      'Wage rates harmonized with I.C.'),
+  genieCivilVoirie('Génie civil et voirie', 'Civil engineering and roads',
+      'G.C.V.', 'C.E.R.',
+      'Le secteur a ses propres taux, horaires jour/nuit et primes. Taux de jour affichés.',
+      'This sector has its own rates, day/night schedules and premiums. Day rates shown.');
 
-  const Secteur(this.nom, this.court, this.note);
-  final String nom;
-  final String court;
-  final String? note;
+  const Secteur(
+      this.nomFr, this.nomEn, this.courtFr, this.courtEn, this.noteFr, this.noteEn);
+  final String nomFr, nomEn, courtFr, courtEn;
+  final String? noteFr, noteEn;
+
+  String get nom => tr(nomFr, nomEn);
+  String get court => tr(courtFr, courtEn);
+  String? get note => noteFr == null ? null : tr(noteFr!, noteEn!);
 }
 
 /// Une hausse de salaire programmée par la convention (date + %).
@@ -47,9 +60,11 @@ class CcqData {
 
   static const String siteWeb = 'ccq.org/salaire';
   static final DateTime enVigueurDepuis = DateTime(2026, 4, 26);
-  static const String enVigueurTexte = 'En vigueur le 26 avril 2026';
-  static const String source =
-      'Taux tirés de l\'API officielle de la CCQ · à valider sur ccq.org/salaire';
+  static String get enVigueurTexte =>
+      tr('En vigueur le 26 avril 2026', 'In effect April 26, 2026');
+  static String get source => tr(
+      'Taux tirés de l\'API officielle de la CCQ · à valider sur ccq.org/salaire',
+      'Rates from the CCQ\'s official API · verify on ccq.org/salaire');
 
   /// Indemnité de congés annuels et de jours fériés : 13,0 % du salaire brut
   /// (confirmé par les grilles des conventions I.C./industriel).
@@ -491,8 +506,11 @@ class Metier {
   /// Paliers du métier : apprentis puis compagnon (100 %).
   List<Palier> paliers() => [
         for (int i = 0; i < apprentiPct.length; i++)
-          Palier('Apprenti ${i + 1}', apprentiPct[i]),
-        Palier(libelleCompagnon, 100),
+          Palier('${tr('Apprenti', 'Apprentice')} ${i + 1}', apprentiPct[i]),
+        Palier(
+            tr(libelleCompagnon,
+                libelleCompagnon == 'Taux' ? 'Rate' : 'Journeyman'),
+            100),
       ];
 }
 
