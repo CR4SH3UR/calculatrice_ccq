@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/ccq_data.dart';
+import '../l10n/lang.dart';
 
 /// Normalise pour la recherche : minuscules, sans accents.
 /// « Électricien » → « electricien », pour trouver même sans accent.
@@ -55,7 +56,8 @@ class _MetierPickerSheetState extends State<_MetierPickerSheet> {
     final List<Metier> list = q.isEmpty
         ? CcqData.metiers
         : CcqData.metiers
-            .where((m) => foldRecherche(m.nom).contains(q))
+            .where((m) =>
+                foldRecherche('${m.nom} ${m.nomAffiche}').contains(q))
             .toList();
 
     return Column(
@@ -67,7 +69,7 @@ class _MetierPickerSheetState extends State<_MetierPickerSheet> {
             autofocus: true,
             onChanged: (v) => setState(() => _q = v),
             decoration: InputDecoration(
-              hintText: 'Chercher un métier…',
+              hintText: tr('Chercher un métier…', 'Search a trade…'),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: _q.isEmpty
                   ? null
@@ -84,7 +86,7 @@ class _MetierPickerSheetState extends State<_MetierPickerSheet> {
         Expanded(
           child: list.isEmpty
               ? Center(
-                  child: Text('Aucun métier pour « $_q »',
+                  child: Text('${tr('Aucun métier pour', 'No trade for')} « $_q »',
                       style: TextStyle(
                           color: Theme.of(context)
                               .colorScheme
@@ -100,7 +102,7 @@ class _MetierPickerSheetState extends State<_MetierPickerSheet> {
                     return ListTile(
                       leading: Icon(m.icon,
                           color: Theme.of(context).colorScheme.primary),
-                      title: Text(m.nom),
+                      title: Text(m.nomAffiche),
                       trailing: sel
                           ? Icon(Icons.check,
                               color: Theme.of(context).colorScheme.primary)
@@ -140,13 +142,13 @@ class MetierField extends StatelessWidget {
       },
       child: InputDecorator(
         decoration: InputDecoration(
-          labelText: 'Métier',
+          labelText: tr('Métier', 'Trade'),
           prefixIcon: Icon(metier.icon, color: c),
         ),
         child: Row(
           children: [
             Expanded(
-              child: Text(metier.nom,
+              child: Text(metier.nomAffiche,
                   maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
             Icon(Icons.search,

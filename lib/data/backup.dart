@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../l10n/lang.dart';
 import 'heures_store.dart';
 
 const String _appTag = 'calculatrice_ccq';
@@ -76,14 +77,15 @@ Future<void> partagerBackup(
     await file.writeAsString(json, encoding: utf8);
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'application/json')],
-      subject: 'Sauvegarde — feuille de temps',
+      subject: tr('Sauvegarde — feuille de temps', 'Backup — timesheet'),
     );
   } catch (_) {
     await Clipboard.setData(ClipboardData(text: json));
     messenger.showSnackBar(
-      const SnackBar(
-        content:
-            Text('Partage indisponible — sauvegarde copiée dans le presse-papiers.'),
+      SnackBar(
+        content: Text(tr(
+            'Partage indisponible — sauvegarde copiée dans le presse-papiers.',
+            'Sharing unavailable — backup copied to the clipboard.')),
       ),
     );
   }

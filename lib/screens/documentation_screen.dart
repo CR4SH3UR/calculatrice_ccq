@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/ccq_data.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/link_tile.dart';
@@ -349,92 +350,451 @@ const List<_CatDoc> _categories = [
   ]),
 ];
 
+/// Traduction des titres de catégories (repli sur le français si absent).
+const Map<String, String> _catEn = {
+  'La CCQ et l\'industrie': 'The CCQ and the industry',
+  'Métiers, occupations et compétence': 'Trades, occupations and competency',
+  'Ta paie': 'Your pay',
+  'Déplacement et éloignement': 'Travel and remoteness',
+  'Avantages sociaux': 'Social benefits',
+  'Tes droits et obligations': 'Your rights and obligations',
+  'Santé et sécurité': 'Health and safety',
+  'Formation et carrière': 'Training and career',
+  'Glossaire': 'Glossary',
+};
+
+/// Traduction des articles, indexée par le titre français (unique). Le corpus
+/// français ci-dessus reste la source; ceci n'ajoute que l'anglais.
+const Map<String, ({String titre, String corps})> _docEn = {
+  // La CCQ et l'industrie
+  'C\'est quoi la CCQ ?': (
+    titre: 'What is the CCQ?',
+    corps: 'The Commission de la construction du Québec runs the construction '
+        'industry: it applies the collective agreements, manages your '
+        'competency card, your hours, your social benefits (pension, MÉDIC '
+        'insurance) and training. It is not a union: it\'s the body that '
+        'oversees the whole industry.',
+  ),
+  'La loi R-20': (
+    titre: 'The R-20 Act',
+    corps: 'The R-20 Act (Act respecting labour relations, vocational training '
+        'and workforce management in the construction industry) is the '
+        'foundational law. It creates the CCQ, makes the agreements mandatory '
+        'and defines who is covered.',
+  ),
+  'Les 4 secteurs et leurs conventions': (
+    titre: 'The 4 sectors and their agreements',
+    corps: 'Construction is divided into 4 sectors, each with its own '
+        'collective agreement: residential, institutional-commercial (I.C.), '
+        'industrial, and civil engineering and roads (C.E.R.). Residential '
+        'splits into « light » (small buildings) and « heavy ». Your sector '
+        'sets your rates, premiums and conditions — the same trade doesn\'t '
+        'earn the same rate from one sector to another.',
+  ),
+  'Le champ d\'application': (
+    titre: 'The scope of application',
+    corps: 'Not all construction work is covered by the R-20 Act. Some work '
+        '(self-building, agricultural, certain maintenance work) may be '
+        'excluded. If you\'re unsure about a site, the CCQ can confirm whether '
+        'you\'re covered.',
+  ),
+  'Associations patronales et syndicales': (
+    titre: 'Employer and union associations',
+    corps: 'Employers are represented by employer associations (ACQ, APCHQ, '
+        'ACRGTQ, etc.) and workers by union associations (FTQ-Construction, '
+        'CPQMCI/International, CSD, CSN, SQC). Together they negotiate the '
+        'agreements. The Unions module details the 5 associations and their '
+        'representativity.',
+  ),
+  // Métiers, occupations et compétence
+  'Métier ou occupation ?': (
+    titre: 'Trade or occupation?',
+    corps: 'A « trade » (electrician, carpenter-joiner, plumber, etc.) '
+        'requires a competency certificate and a supervised apprenticeship. An '
+        '« occupation » (labourer, general help, etc.) also requires a '
+        'certificate, but without the same apprenticeship path. Your rates and '
+        'your schedule depend on it.',
+  ),
+  'Compagnon, apprenti et paliers': (
+    titre: 'Journeyman, apprentice and steps',
+    corps: 'The apprentice learns by accumulating hours and progresses in '
+        'periods. At each period, they earn a percentage of the journeyman '
+        'rate (often 50, 60, 70 then 85%). The journeyman holds their card and '
+        'earns 100%. The number of periods depends on the trade.',
+  ),
+  'Le certificat de compétence': (
+    titre: 'The competency certificate',
+    corps: 'It\'s your « card »: journeyman-competency, apprentice-competency, '
+        'or occupation certificate. It proves your right to work in your trade '
+        'on covered sites. Keep it up to date and on you.',
+  ),
+  'Le carnet d\'apprentissage et les ratios': (
+    titre: 'The apprenticeship logbook and ratios',
+    corps: 'Your logbook records your apprenticeship hours. On a site, a ratio '
+        'limits the number of apprentices per journeyman by trade (to ensure '
+        'supervision). This ratio is set by regulation.',
+  ),
+  'Les examens de qualification': (
+    titre: 'The qualification exams',
+    corps: 'Once your apprenticeship periods are complete, you take the '
+        'provincial qualification exam to become a journeyman. Passing gives '
+        'you your journeyman-competency card.',
+  ),
+  'Bassins de main-d\'œuvre et embauche': (
+    titre: 'Labour pools and hiring',
+    corps: 'The CCQ manages regional labour pools. Hiring follows a priority '
+        'order (region, availability, etc.). Mobility between regions is '
+        'possible under specific rules.',
+  ),
+  // Ta paie
+  'Lire ton talon de paie': (
+    titre: 'Reading your pay stub',
+    corps: 'Your stub shows: your hours (regular, 1.5×, 2×), your rate, your '
+        'gross, the vacation pay, the deductions (taxes, QPP, EI, QPIP, dues) '
+        'and the net. It also lists your trade, sector and employer. Always '
+        'compare it to your actual hours.',
+  ),
+  'Majorations : temps et demi, temps double': (
+    titre: 'Premiums: time and a half, double time',
+    corps: 'Beyond regular hours, hours are paid at time and a half (× 1.5) or '
+        'double (× 2), depending on the agreement, the time of week and the '
+        'sector. Night work or holidays may be increased. The pay calculator '
+        'accepts each type of hours.',
+  ),
+  'Comprendre les taux et les hausses': (
+    titre: 'Understanding rates and increases',
+    corps: 'The app\'s rates are those in force on April 26, 2026, drawn from '
+        'the official CCQ source. The 2025-2029 agreements provide for '
+        'increases each year, generally in late April. « Rates by trade » '
+        'shows the current rate AND the upcoming dated rates.',
+  ),
+  'Indemnité de congés (13 %)': (
+    titre: 'Vacation pay (13%)',
+    corps: 'Annual leave and holidays are paid as an indemnity — about 13% of '
+        'gross pay. It\'s managed by the CCQ, then paid at the set periods '
+        '(summer and winter vacations). It\'s money that belongs to you: check '
+        'it on your statement.',
+  ),
+  'Les retenues sur ta paie': (
+    titre: 'The deductions on your pay',
+    corps: 'From your gross, they deduct: federal and provincial tax, the QPP '
+        '(Quebec Pension Plan), employment insurance, the QPIP (parental '
+        'insurance), your union dues and the CCQ contribution. What\'s left is '
+        'your net. The amount varies with your income.',
+  ),
+  'Primes et conditions particulières': (
+    titre: 'Premiums and special conditions',
+    corps: 'Depending on the agreement: night premium, height premium, '
+        'confined-space work, underwater, etc. These premiums add to the rate. '
+        'The exact conditions and amounts are in your sector agreement.',
+  ),
+  // Déplacement et éloignement
+  'Frais de transport (kilométrage)': (
+    titre: 'Transport costs (mileage)',
+    corps: 'When you use your vehicle to get to a remote site, you may be '
+        'entitled to a per-kilometre allowance. The rate/km and the distance '
+        'thresholds depend on your agreement. The « Travel » tool helps you '
+        'estimate.',
+  ),
+  'Les zones de déplacement': (
+    titre: 'The travel zones',
+    corps: 'Several agreements divide the territory into zones around the '
+        'site. The farther you live, the higher the allowance. Check the zone '
+        'map and the amounts in your agreement.',
+  ),
+  'Chambre et pension': (
+    titre: 'Room and board',
+    corps: 'For very remote sites, you may be entitled to « room and board » '
+        '(lodging and meals paid or reimbursed) rather than a daily round '
+        'trip. The conditions vary by agreement and distance.',
+  ),
+  'Temps de déplacement': (
+    titre: 'Travel time',
+    corps: 'In some cases, the time spent travelling to a remote site can be '
+        'paid or compensated. Again, it\'s your sector agreement that sets the '
+        'rules.',
+  ),
+  // Avantages sociaux
+  'Vue d\'ensemble': (
+    titre: 'Overview',
+    corps: 'For each hour worked, contributions (employer + employee) fund '
+        'your benefits: the MÉDIC insurance plan and the pension plan. The CCQ '
+        'manages these amounts; your monthly statement shows them. Keep your '
+        'statements.',
+  ),
+  'MÉDIC Construction (assurance)': (
+    titre: 'MÉDIC Construction (insurance)',
+    corps: 'MÉDIC is your group insurance: health and drugs, dental, vision, '
+        'paramedical, life and salary (disability) insurance. Your plan (A, B, '
+        'C, D — or AO to DO for occupations) depends on your hours. The MÉDIC '
+        'module gives the full table.',
+  ),
+  'Régime de retraite': (
+    titre: 'Pension plan',
+    corps: 'Two accounts: the general account (defined benefits, frozen since '
+        '2005) and the supplementary account (defined contributions), where '
+        'your contributions go today. Normal retirement at 65, early from 55. '
+        'The Retirement module projects your supplementary account.',
+  ),
+  'Vacances de la construction': (
+    titre: 'Construction holidays',
+    corps: 'The industry closes for two vacation periods per year (summer and '
+        'winter), set each year by agreement. Your accumulated vacation pay is '
+        'paid to cover these periods. Check the official dates on ccq.org.',
+  ),
+  // Tes droits et obligations
+  'Heures et horaire de travail': (
+    titre: 'Hours and work schedule',
+    corps: 'The normal week and daily hours are set by your agreement (often '
+        '40 h/week). Beyond that, they are increased overtime hours. '
+        'Compressed or night schedules have their own rules.',
+  ),
+  'Jours fériés chômés': (
+    titre: 'Paid statutory holidays',
+    corps: 'Several holidays are unworked and paid through the vacation pay. '
+        'The list and exact treatment are in the agreement. The « Holidays » '
+        'tool gives an overview.',
+  ),
+  'Mise à pied, rappel et sécurité d\'emploi': (
+    titre: 'Layoff, recall and job security',
+    corps: 'Construction runs by projects: layoffs and recalls are frequent. '
+        'The agreement governs notices, the recall order and certain rights. A '
+        'layoff is not a dismissal.',
+  ),
+  'Mobilité de la main-d\'œuvre': (
+    titre: 'Workforce mobility',
+    corps: 'You can work in other regions under mobility rules. Regional '
+        'priority exists, but inter-regional mobility is allowed in several '
+        'situations. The CCQ can explain your situation.',
+  ),
+  'Recours et plaintes': (
+    titre: 'Remedies and complaints',
+    corps: 'If you\'re not paid correctly (hours, rate, benefits), you can file '
+        'a complaint with the CCQ, which has the power to investigate and '
+        'recover the amounts owed. Keep your stubs and note your hours — the '
+        'app\'s timesheet helps you build your proof.',
+  ),
+  // Santé et sécurité
+  'Tes obligations et celles de l\'employeur': (
+    titre: 'Your obligations and the employer\'s',
+    corps: 'The employer must provide a safe environment, protective equipment '
+        'and training. You must work safely, wear your PPE and report hazards. '
+        'Safety is a shared responsibility.',
+  ),
+  'La carte ASP (cours obligatoire)': (
+    titre: 'The ASP card (mandatory course)',
+    corps: 'To work on a site in Quebec, the « General health and safety on '
+        'construction sites » course (30 hours) is mandatory. It grants the '
+        'ASP Construction card. Without it, site access can be denied.',
+  ),
+  'Le droit de refus': (
+    titre: 'The right of refusal',
+    corps: 'You have the right to refuse work if you have reasonable grounds '
+        'to believe it endangers you or someone else. Notify your supervisor '
+        'and the safety representative. This right is protected by law '
+        '(CNESST).',
+  ),
+  'Représentant et comité de chantier': (
+    titre: 'Representative and site committee',
+    corps: 'On large sites, a health and safety representative and a committee '
+        'oversee prevention. Don\'t hesitate to tell them about a hazard — '
+        'that\'s their role.',
+  ),
+  'EPI, SIMDUT et lignes électriques': (
+    titre: 'PPE, WHMIS and power lines',
+    corps: 'Hard hat, boots, glasses, harness: your PPE saves lives. The WHMIS '
+        'module explains the 9 pictograms of hazardous products, and the Power '
+        'lines module gives the approach distances to respect. Check them out.',
+  ),
+  // Formation et carrière
+  'Le perfectionnement': (
+    titre: 'Skills upgrading',
+    corps: 'The CCQ and the training fund offer upgrading courses, often free '
+        'and sometimes paid, to develop your skills. Upgrading helps land more '
+        'contracts and advance.',
+  ),
+  'La formation obligatoire': (
+    titre: 'Mandatory training',
+    corps: 'Some work requires specific training or certification (confined '
+        'spaces, work at heights, scaffolding, WHMIS, etc.). Check the '
+        'requirements before accepting a specialized task.',
+  ),
+  'Devenir compagnon': (
+    titre: 'Becoming a journeyman',
+    corps: 'Complete your apprenticeship periods, accumulate your hours in '
+        'your logbook, then pass the qualification exam. You then go from '
+        'apprentice to journeyman — and to 100% of the rate.',
+  ),
+  'Devenir entrepreneur (RBQ)': (
+    titre: 'Becoming a contractor (RBQ)',
+    corps: 'To work for yourself as a contractor, you need a licence from the '
+        'Régie du bâtiment du Québec (RBQ), which checks your technical and '
+        'administrative skills and your integrity. It\'s separate from your '
+        'CCQ competency card.',
+  ),
+  // Glossaire
+  'CCQ': (
+    titre: 'CCQ',
+    corps: 'Commission de la construction du Québec — manages the industry, '
+        'cards, hours and benefits.',
+  ),
+  'CNESST': (
+    titre: 'CNESST',
+    corps: 'Commission des normes, de l\'équité, de la santé et de la sécurité '
+        'du travail — health-safety and compensation.',
+  ),
+  'RBQ': (
+    titre: 'RBQ',
+    corps: 'Régie du bâtiment du Québec — contractor licences and building '
+        'quality.',
+  ),
+  'Loi R-20': (
+    titre: 'R-20 Act',
+    corps: 'The law that governs labour relations and training in '
+        'construction.',
+  ),
+  'Compagnon / apprenti': (
+    titre: 'Journeyman / apprentice',
+    corps: 'Journeyman: qualified worker (card, 100% of rate). Apprentice: in '
+        'training, paid a % of the journeyman rate.',
+  ),
+  'Secteur / convention': (
+    titre: 'Sector / agreement',
+    corps: 'Sector: one of the 4 fields (res., I.C., ind., C.E.R.). Agreement: '
+        'the deal that sets the sector\'s wages and conditions.',
+  ),
+  'Annexe': (
+    titre: 'Schedule',
+    corps: 'Sub-grid of an agreement (e.g. day/night work, region, remote '
+        'site).',
+  ),
+  'MÉDIC': (
+    titre: 'MÉDIC',
+    corps: 'The group insurance plan for construction workers, managed by the '
+        'CCQ.',
+  ),
+  'EPI': (
+    titre: 'PPE',
+    corps: 'Personal protective equipment: hard hat, boots, glasses, harness, '
+        'hearing protection, etc.',
+  ),
+  'ASP Construction': (
+    titre: 'ASP Construction',
+    corps: 'Prevention body; gives the 30-h safety course and the card '
+        'required on sites.',
+  ),
+};
+
 class DocumentationScreen extends StatelessWidget {
   const DocumentationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Garde-fou (debug seulement) : chaque catégorie et chaque article doit
+    // avoir sa traduction, sinon l'anglais retombe silencieusement au français.
+    assert(() {
+      for (final cat in _categories) {
+        assert(_catEn.containsKey(cat.titre), 'Cat EN manquante: ${cat.titre}');
+        for (final a in cat.articles) {
+          assert(_docEn.containsKey(a.titre), 'Doc EN manquant: ${a.titre}');
+        }
+      }
+      return true;
+    }());
     return ToolScaffold(
       title: 'Documentation',
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Une base d\'infos pour t\'y retrouver dans l\'industrie. Pour les '
-              'règles et les chiffres exacts, réfère-toi à ta convention '
-              'collective et à ccq.org — ce sont elles qui font foi.',
+                  'règles et les chiffres exacts, réfère-toi à ta convention '
+                  'collective et à ccq.org — ce sont elles qui font foi.',
+              'A base of info to find your way in the industry. For the exact '
+                  'rules and figures, refer to your collective agreement and to '
+                  'ccq.org — those are what prevail.'),
           icon: Icons.menu_book,
           color: AppColors.infos,
         ),
         const SizedBox(height: 16),
-        const SectionTitle('Documents & sites officiels',
+        SectionTitle(tr('Documents & sites officiels', 'Official documents & sites'),
             color: AppColors.infos),
-        const LinkTile(
+        LinkTile(
           icon: Icons.gavel,
-          title: 'Conventions collectives (4 secteurs)',
-          subtitle: 'Résidentiel, I.C., industriel, génie civil',
+          title: tr('Conventions collectives (4 secteurs)',
+              'Collective agreements (4 sectors)'),
+          subtitle: tr('Résidentiel, I.C., industriel, génie civil',
+              'Residential, I.C., industrial, civil engineering'),
           url: 'https://www.ccq.org/fr-CA/loi-r20/conventions-collectives',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.request_quote,
-          title: 'Taux de salaire officiels',
-          subtitle: 'Outil de la CCQ, par secteur et métier',
+          title: tr('Taux de salaire officiels', 'Official wage rates'),
+          subtitle: tr('Outil de la CCQ, par secteur et métier',
+              'CCQ tool, by sector and trade'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/salaire-taux',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.health_and_safety,
           title: 'MÉDIC Construction',
-          subtitle: 'Assurances et avantages sociaux',
+          subtitle: tr('Assurances et avantages sociaux',
+              'Insurance and social benefits'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/medic-construction',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.savings,
-          title: 'Régime de retraite',
-          subtitle: 'Ta rente et tes heures accumulées',
+          title: tr('Régime de retraite', 'Pension plan'),
+          subtitle: tr('Ta rente et tes heures accumulées',
+              'Your pension and accumulated hours'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/retraite',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.groups,
-          title: 'Cotisations syndicales',
-          subtitle: 'Montants par syndicat et métier',
+          title: tr('Cotisations syndicales', 'Union dues'),
+          subtitle: tr('Montants par syndicat et métier',
+              'Amounts by union and trade'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/salaire-taux/cotisations-syndicales',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.badge,
-          title: 'Certificat de compétence',
-          subtitle: 'Carte, carnet et apprentissage',
+          title: tr('Certificat de compétence', 'Competency certificate'),
+          subtitle: tr('Carte, carnet et apprentissage',
+              'Card, logbook and apprenticeship'),
           url: 'https://www.ccq.org/fr-CA/travailleurs',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.school,
           title: 'ASP Construction',
-          subtitle: 'Cours de sécurité (30 h) et prévention',
+          subtitle: tr('Cours de sécurité (30 h) et prévention',
+              'Safety course (30 h) and prevention'),
           url: 'https://www.asp-construction.org',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.apartment,
           title: 'Régie du bâtiment (RBQ)',
-          subtitle: 'Licences d\'entrepreneur',
+          subtitle: tr('Licences d\'entrepreneur', 'Contractor licences'),
           url: 'https://www.rbq.gouv.qc.ca',
           color: AppColors.infos,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.emergency,
-          title: 'CNESST — santé et sécurité',
-          subtitle: 'Prévention, droits, indemnisation',
+          title: tr('CNESST — santé et sécurité', 'CNESST — health and safety'),
+          subtitle: tr('Prévention, droits, indemnisation',
+              'Prevention, rights, compensation'),
           url: 'https://www.cnesst.gouv.qc.ca',
           color: AppColors.infos,
         ),
         const SizedBox(height: 8),
         for (final cat in _categories) ...[
           const SizedBox(height: 10),
-          SectionTitle(cat.titre, color: AppColors.infos),
+          SectionTitle(tr(cat.titre, _catEn[cat.titre] ?? cat.titre),
+              color: AppColors.infos),
           const SizedBox(height: 4),
           ...cat.articles.map((a) => _DocCard(doc: a, icon: cat.icon)),
         ],
@@ -461,6 +821,8 @@ class _DocCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ({String titre, String corps})? en =
+        estAnglais ? _docEn[doc.titre] : null;
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.only(bottom: 10),
@@ -475,13 +837,13 @@ class _DocCard extends StatelessWidget {
             ),
             child: Icon(icon, color: AppColors.infos, size: 22),
           ),
-          title: Text(doc.titre,
+          title: Text(en?.titre ?? doc.titre,
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(doc.corps,
+              child: Text(en?.corps ?? doc.corps,
                   style: TextStyle(
                       fontSize: 13.5,
                       height: 1.45,

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../l10n/lang.dart';
 import '../utils/format.dart';
 import 'heures_store.dart';
 
@@ -34,7 +35,7 @@ Future<Uint8List> genererFeuillePdf(List<HeureEntry> entries) async {
 
   String heuresDetail(HeureEntry e) => [
         if (e.hNormal > 0) '${Fmt.trim(e.hNormal)}×1',
-        if (e.h15 > 0) '${Fmt.trim(e.h15)}×1,5',
+        if (e.h15 > 0) '${Fmt.trim(e.h15)}${tr('×1,5', '×1.5')}',
         if (e.h2 > 0) '${Fmt.trim(e.h2)}×2',
       ].join('  ');
 
@@ -47,7 +48,7 @@ Future<Uint8List> genererFeuillePdf(List<HeureEntry> entries) async {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            pw.Text('Feuille de temps',
+            pw.Text(tr('Feuille de temps', 'Timesheet'),
                 style: pw.TextStyle(
                     fontSize: 22,
                     fontWeight: pw.FontWeight.bold,
@@ -76,7 +77,14 @@ Future<Uint8List> genererFeuillePdf(List<HeureEntry> entries) async {
               4: pw.Alignment.centerRight,
               5: pw.Alignment.centerRight,
             },
-            headers: ['Date', 'Détail', 'Heures', 'Taux', 'Brut', 'Dépl.'],
+            headers: [
+              'Date',
+              tr('Détail', 'Details'),
+              tr('Heures', 'Hours'),
+              tr('Taux', 'Rate'),
+              tr('Brut', 'Gross'),
+              tr('Dépl.', 'Travel'),
+            ],
             data: [
               for (final e in (parSem[s]!..sort((a, b) => a.date.compareTo(b.date))))
                 [
@@ -97,14 +105,15 @@ Future<Uint8List> genererFeuillePdf(List<HeureEntry> entries) async {
           children: [
             pw.Text('TOTAL', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13)),
             pw.Text(
-              '${Fmt.trim(gHeures)} h   ·   Brut ${Fmt.money(gBrut)}'
-              '${gDep > 0 ? '   ·   Déplacement ${Fmt.money(gDep)}' : ''}',
+              '${Fmt.trim(gHeures)} h   ·   ${tr('Brut', 'Gross')} ${Fmt.money(gBrut)}'
+              '${gDep > 0 ? '   ·   ${tr('Déplacement', 'Travel')} ${Fmt.money(gDep)}' : ''}',
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 13, color: bleu),
             ),
           ],
         ),
         pw.SizedBox(height: 2),
-        pw.Text('Brut + indemnité de congés 13 % : ${Fmt.money(gBrut * 1.13)}',
+        pw.Text(
+            '${tr('Brut + indemnité de congés 13 %', 'Gross + 13% vacation pay')} : ${Fmt.money(gBrut * 1.13)}',
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
       ],
     ),
@@ -124,7 +133,9 @@ pw.Widget _enteteSemaine(
   return pw.Row(
     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
     children: [
-      pw.Text('Semaine du ${Fmt.dateFr(s)} au ${Fmt.dateFr(fin)}', style: gras),
+      pw.Text(
+          '${tr('Semaine du', 'Week of')} ${Fmt.dateFr(s)} ${tr('au', 'to')} ${Fmt.dateFr(fin)}',
+          style: gras),
       pw.Text('${Fmt.trim(h)} h · ${Fmt.money(b)}',
           style: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: bleu)),
     ],

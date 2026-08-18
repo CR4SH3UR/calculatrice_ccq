@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/lang.dart';
+
 /// Ouvre [url] dans le navigateur. Si l'ouverture échoue (ex. pas de
 /// navigateur), copie le lien dans le presse-papiers et le signale.
 Future<void> openUrl(BuildContext context, String url) async {
@@ -16,7 +18,9 @@ Future<void> openUrl(BuildContext context, String url) async {
   if (!ok) {
     await Clipboard.setData(ClipboardData(text: uri.toString()));
     messenger.showSnackBar(
-      SnackBar(content: Text('Lien copié : ${uri.toString()}')),
+      SnackBar(
+          content:
+              Text('${tr('Lien copié', 'Link copied')} : ${uri.toString()}')),
     );
   }
 }

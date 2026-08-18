@@ -1,6 +1,7 @@
 // Smoke tests de base pour la Calculatrice CCQ.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'dart:convert';
@@ -15,6 +16,7 @@ import 'package:calculatrice_ccq/data/heures_store.dart';
 import 'package:calculatrice_ccq/l10n/lang.dart';
 import 'package:calculatrice_ccq/main.dart';
 import 'package:calculatrice_ccq/screens/calculs_plus.dart';
+import 'package:calculatrice_ccq/screens/documentation_screen.dart';
 import 'package:calculatrice_ccq/screens/paie_screens.dart';
 import 'package:calculatrice_ccq/screens/retraite_screen.dart';
 import 'package:calculatrice_ccq/screens/securite_plus.dart';
@@ -61,6 +63,33 @@ void main() {
     expect(find.text('Pay & wages'), findsOneWidget);
     expect(find.text('Pay calculator'), findsOneWidget);
     expect(find.text('Paie & salaire'), findsNothing);
+  });
+
+  testWidgets(
+      'Documentation en anglais : le garde-fou valide toutes les clés '
+      'et le rendu passe en anglais', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(400, 6000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    addTearDown(() => langue.value = Lang.fr);
+
+    langue.value = Lang.en;
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('fr'), Locale('en')],
+      home: const DocumentationScreen(),
+    ));
+    // L'assert dans DocumentationScreen.build parcourt toutes les catégories
+    // et tous les articles : une clé EN manquante ferait échouer ce pump.
+    await tester.pumpAndSettle();
+
+    expect(find.text('Official documents & sites'), findsOneWidget);
+    expect(find.text('Documents & sites officiels'), findsNothing);
   });
 
   testWidgets('Le titre de section colle à ses tuiles',

@@ -1,8 +1,136 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/link_tile.dart';
+
+/// Traductions des libellés MÉDIC. Les données (montants) restent identiques;
+/// seuls les libellés sont traduits — repli sur le français si absent.
+const Map<String, String> _medicEn = {
+  // Couvertures — titres
+  'Assurance maladie & médicaments': 'Health & drug insurance',
+  'Hospitalisation': 'Hospitalization',
+  'Soins dentaires': 'Dental care',
+  'Assurance vie': 'Life insurance',
+  'Assurance salaire (invalidité)': 'Salary insurance (disability)',
+  'Personnes à charge (famille)': 'Dependents (family)',
+  'CONSTRUIRE en santé': 'CONSTRUIRE en santé',
+  'Assurance aux retraités': 'Retiree insurance',
+  // Couvertures — détails
+  'Remboursement des médicaments et de soins de santé, selon ton régime '
+          'de base (A, B, C ou D). C\'est la protection la plus utilisée au '
+          'quotidien.':
+      'Reimbursement of medication and health care, based on your basic '
+          'plan (A, B, C or D). It\'s the most-used protection day to day.',
+  'Couverture des frais liés à une hospitalisation (ex. chambre), selon '
+          'les modalités de ton régime.':
+      'Coverage of costs related to a hospital stay (e.g. room), based on '
+          'your plan\'s terms.',
+  'Remboursement de soins dentaires selon le niveau de ton régime. '
+          'Vérifie ta couverture avant des traitements importants.':
+      'Reimbursement of dental care based on your plan level. Check your '
+          'coverage before major treatments.',
+  'Prestation versée à tes proches en cas de décès. Le montant dépend de '
+          'ton régime.':
+      'Benefit paid to your loved ones in case of death. The amount depends '
+          'on your plan.',
+  'Revenu de remplacement si une maladie ou un accident (hors travail) '
+          't\'empêche de travailler. Pour un accident du travail, c\'est plutôt '
+          'la CNESST.':
+      'Replacement income if an illness or accident (outside work) keeps '
+          'you from working. For a work accident, it\'s the CNESST instead.',
+  'Ton conjoint et tes enfants peuvent être couverts selon ton régime — '
+          'une protection pour toute la famille.':
+      'Your spouse and children can be covered based on your plan — '
+          'protection for the whole family.',
+  'Programme de promotion et de gestion de la santé inclus : accès à des '
+          'services professionnels en santé physique ET mentale, ligne d\'aide '
+          'confidentielle. Un bon réflexe quand ça va moins bien.':
+      'Included health promotion and management program: access to '
+          'professional physical AND mental health services, and a '
+          'confidential help line. A good reflex when things go sideways.',
+  'Si tu as accumulé au moins 21 000 heures au régime de retraite, tu peux '
+          'garder une protection d\'assurance à la retraite, pour toi et tes '
+          'personnes à charge.':
+      'If you\'ve accumulated at least 21,000 hours in the pension plan, you '
+          'can keep insurance protection in retirement, for you and your '
+          'dependents.',
+  // Sections — titres
+  'Assurance maladie': 'Health insurance',
+  'Assurance dentaire': 'Dental insurance',
+  'Assurance vie et mutilation': 'Life & dismemberment insurance',
+  // Sections — notes
+  'Soins paramédicaux : maximums par visite. Régime D : paramédical non couvert.':
+      'Paramedical care: maximums per visit. Plan D: paramedical not covered.',
+  'Régime D / DO : aucune assurance dentaire.':
+      'Plan D / DO: no dental insurance.',
+  'Métiers : montants « moins de 65 ans » — réduits après 65 ans, cessent à 70 ans. Occupations : montant unique.':
+      'Trades: « under 65 » amounts — reduced after 65, end at 70. Occupations: single amount.',
+  'Selon les heures accumulées au régime de retraite (avant l\'invalidité). Payable au salarié seulement; régime D : aucune.':
+      'Based on hours accumulated in the pension plan (before the disability). Payable to the employee only; plan D: none.',
+  // Lignes — assurance maladie
+  'Hospitalisation / jour': 'Hospitalization / day',
+  'Médicaments remboursés': 'Drugs reimbursed',
+  'Franchise médicaments': 'Drug deductible',
+  'Plafond médicaments (100 %)': 'Drug ceiling (100%)',
+  'Examen vue — salarié (24 m)': 'Eye exam — employee (24 mo)',
+  'Examen vue — conjoint (24 m)': 'Eye exam — spouse (24 mo)',
+  'Examen vue — enfant (12 m)': 'Eye exam — child (12 mo)',
+  'Lunettes — salarié (24 m)': 'Glasses — employee (24 mo)',
+  'Lunettes — conjoint (24 m)': 'Glasses — spouse (24 mo)',
+  'Lunettes — enfant (24 m)': 'Glasses — child (24 mo)',
+  'Lunettes sécurité (12 m)': 'Safety glasses (12 mo)',
+  'Chirurgie vision — à vie': 'Vision surgery — lifetime',
+  'Chiropraticien / visite': 'Chiropractor / visit',
+  'Radiographies chiro': 'Chiro X-rays',
+  'Physiothérapeute / visite': 'Physiotherapist / visit',
+  'Acupuncteur / visite': 'Acupuncturist / visit',
+  'Audiologiste / visite': 'Audiologist / visit',
+  'Psychologue / visite': 'Psychologist / visit',
+  'Orthophoniste / visite': 'Speech therapist / visit',
+  'Podiatre / podologue': 'Podiatrist / chiropodist',
+  'Travailleur social / visite': 'Social worker / visit',
+  'Ostéopathe / visite': 'Osteopath / visit',
+  'Naturopathe / visite': 'Naturopath / visit',
+  'Massothérapeute / visite': 'Massage therapist / visit',
+  'Paramédical — max/période': 'Paramedical — max/period',
+  'Appareils auditifs (36 m)': 'Hearing aids (36 mo)',
+  'Piles auditives (12 m)': 'Hearing aid batteries (12 mo)',
+  'Labo — max/12 mois': 'Lab — max/12 months',
+  'Rapports médicaux CCQ': 'CCQ medical reports',
+  'Dentaire suite accident': 'Dental after accident',
+  'Chirurgie plastique (accident)': 'Plastic surgery (accident)',
+  'Orthèses/béquilles/CPAP': 'Orthoses/crutches/CPAP',
+  'Transport ambulance': 'Ambulance transport',
+  'Urgence à l\'étranger': 'Emergency abroad',
+  'Construire — alcool/toxico/jeu': 'Construire — alcohol/drugs/gambling',
+  'Construire — dépression': 'Construire — depression',
+  'Aide aux travailleurs (h/an)': 'Worker assistance (h/yr)',
+  // Lignes — assurance dentaire
+  'Franchise / famille': 'Deductible / family',
+  'Diagnostic, prévention, mineur': 'Diagnostic, prevention, minor',
+  '  max / personne / période': '  max / person / period',
+  'Parodontie, endodontie': 'Periodontics, endodontics',
+  'Restaurations majeures': 'Major restorations',
+  'Orthodontie (enfant)': 'Orthodontics (child)',
+  '  ortho. max à vie / enfant': '  ortho. lifetime max / child',
+  // Lignes — assurance vie et mutilation
+  'Décès salarié (avec charge)': 'Employee death (with dependents)',
+  'Décès salarié (sans charge)': 'Employee death (no dependents)',
+  'Décès conjoint': 'Spouse death',
+  'Décès enfant à charge': 'Dependent child death',
+  'Décès accidentel (add.)': 'Accidental death (add.)',
+  'Mutilation accidentelle (max)': 'Accidental dismemberment (max)',
+  // Lignes — assurance salaire
+  'Courte < 4 000 h /sem': 'Short-term < 4,000 h /wk',
+  'Courte 4 000–6 000 h /sem': 'Short-term 4,000–6,000 h /wk',
+  'Courte 6 000 h+ /sem': 'Short-term 6,000 h+ /wk',
+  'Longue 6 000 h+ /mois': 'Long-term 6,000 h+ /mo',
+};
+
+/// Libellé MÉDIC traduit : anglais depuis la table, repli sur le français.
+String _mtr(String fr) => tr(fr, _medicEn[fr] ?? fr);
 
 class _Couverture {
   const _Couverture(this.titre, this.icon, this.details);
@@ -223,76 +351,104 @@ class MedicScreen extends StatelessWidget {
     return ToolScaffold(
       title: 'MÉDIC Construction',
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'MÉDIC Construction, c\'est le régime d\'assurance collectif des '
-              'travailleurs de la construction, géré par la CCQ. Il vient avec '
-              'ton travail dans l\'industrie — une protection santé, vie et '
-              'invalidité pour toi et ta famille.',
+                  'travailleurs de la construction, géré par la CCQ. Il vient avec '
+                  'ton travail dans l\'industrie — une protection santé, vie et '
+                  'invalidité pour toi et ta famille.',
+              'MÉDIC Construction is the group insurance plan for construction '
+                  'workers, managed by the CCQ. It comes with your work in the '
+                  'industry — health, life and disability protection for you and '
+                  'your family.'),
           icon: Icons.health_and_safety,
           color: AppColors.medic,
         ),
         const SizedBox(height: 16),
-        const SectionTitle('Ce que ça couvre', color: AppColors.medic),
+        SectionTitle(tr('Ce que ça couvre', 'What it covers'),
+            color: AppColors.medic),
         ..._couvertures.map((c) => _CouvertureCard(couv: c)),
         const SizedBox(height: 10),
-        const SectionTitle('Régimes et financement', color: AppColors.medic),
-        const InfoBanner(
-          text:
+        SectionTitle(tr('Régimes et financement', 'Plans and funding'),
+            color: AppColors.medic),
+        InfoBanner(
+          text: tr(
               'Il existe des régimes de base A, B, C et D : ton admissibilité '
-              'et ton niveau de protection dépendent des heures travaillées. '
-              'Le régime est financé par des cotisations versées pour chaque '
-              'heure travaillée (part de l\'employeur et du salarié), gérées '
-              'par la CCQ. Ton relevé mensuel en fait état.',
+                  'et ton niveau de protection dépendent des heures travaillées. '
+                  'Le régime est financé par des cotisations versées pour chaque '
+                  'heure travaillée (part de l\'employeur et du salarié), gérées '
+                  'par la CCQ. Ton relevé mensuel en fait état.',
+              'There are basic plans A, B, C and D: your eligibility and your '
+                  'protection level depend on the hours you work. The plan is '
+                  'funded by contributions paid for each hour worked (employer '
+                  'and employee share), managed by the CCQ. Your monthly '
+                  'statement shows it.'),
           icon: Icons.info_outline,
           color: AppColors.medic,
         ),
         const SizedBox(height: 16),
-        const SectionTitle('Comparatif des protections', color: AppColors.medic),
+        SectionTitle(tr('Comparatif des protections', 'Protection comparison'),
+            color: AppColors.medic),
         const SizedBox(height: 6),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Protections du 1er juillet au 31 décembre 2026, classées comme le '
-              'bulletin : maladie, dentaire, vie et mutilation, salaire. Bascule '
-              'entre le régime des métiers (A-D) et celui des occupations '
-              '(AO-DO). Ton régime dépend des heures de la période de référence '
-              '(6 mois) — minimum 300 h pour être assuré.',
+                  'bulletin : maladie, dentaire, vie et mutilation, salaire. Bascule '
+                  'entre le régime des métiers (A-D) et celui des occupations '
+                  '(AO-DO). Ton régime dépend des heures de la période de référence '
+                  '(6 mois) — minimum 300 h pour être assuré.',
+              'Protections from July 1 to December 31, 2026, ordered like the '
+                  'bulletin: health, dental, life & dismemberment, salary. Toggle '
+                  'between the trades plan (A-D) and the occupations plan (AO-DO). '
+                  'Your plan depends on the hours in the reference period '
+                  '(6 months) — minimum 300 h to be insured.'),
           icon: Icons.table_chart,
           color: AppColors.medic,
         ),
         const SizedBox(height: 12),
         const _ComparatifRegimes(),
         const SizedBox(height: 8),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Source : Bulletins d\'information MÉDIC Construction, vol. 25 no 2 '
-              '(juillet 2026), CCQ — régimes de base des métiers (PD5212) et des '
-              'occupations (PD5225), 7 pages reproduites. Le régime de base '
-              'inclut l\'assurance dentaire (sauf régime D). Montants indicatifs; '
-              'seul le Règlement R-20, r. 10 a valeur officielle — ta couverture '
-              'réelle figure sur ton relevé.',
+                  '(juillet 2026), CCQ — régimes de base des métiers (PD5212) et des '
+                  'occupations (PD5225), 7 pages reproduites. Le régime de base '
+                  'inclut l\'assurance dentaire (sauf régime D). Montants indicatifs; '
+                  'seul le Règlement R-20, r. 10 a valeur officielle — ta couverture '
+                  'réelle figure sur ton relevé.',
+              'Source: MÉDIC Construction information bulletins, vol. 25 no. 2 '
+                  '(July 2026), CCQ — basic plans for trades (PD5212) and '
+                  'occupations (PD5225), 7 pages reproduced. The basic plan '
+                  'includes dental insurance (except plan D). Amounts are '
+                  'indicative; only Regulation R-20, r. 10 is official — your '
+                  'actual coverage is on your statement.'),
         ),
         const SizedBox(height: 14),
-        const LinkTile(
+        LinkTile(
           icon: Icons.open_in_browser,
           title: 'MÉDIC Construction (CCQ)',
-          subtitle: 'Détails des régimes, protections, réclamations',
+          subtitle: tr('Détails des régimes, protections, réclamations',
+              'Plan details, protections, claims'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/medic-construction',
           color: AppColors.medic,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.elderly,
-          title: 'Assurance aux retraités',
-          subtitle: 'Admissibilité (21 000 h) et protections',
+          title: tr('Assurance aux retraités', 'Retiree insurance'),
+          subtitle: tr('Admissibilité (21 000 h) et protections',
+              'Eligibility (21,000 h) and protections'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/medic-construction/assurances-retraites',
           color: AppColors.medic,
         ),
         const SizedBox(height: 8),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Infos générales de vulgarisation. Pour ta couverture exacte et '
-              'tes réclamations, réfère-toi à la CCQ (avantages sociaux) et à '
-              'ton relevé.',
+                  'tes réclamations, réfère-toi à la CCQ (avantages sociaux) et à '
+                  'ton relevé.',
+              'General plain-language info. For your exact coverage and your '
+                  'claims, refer to the CCQ (social benefits) and your '
+                  'statement.'),
         ),
       ],
     );
@@ -319,13 +475,13 @@ class _CouvertureCard extends StatelessWidget {
             ),
             child: Icon(couv.icon, color: AppColors.medic, size: 22),
           ),
-          title: Text(couv.titre,
+          title: Text(_mtr(couv.titre),
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(couv.details,
+              child: Text(_mtr(couv.details),
                   style: TextStyle(
                       fontSize: 13.5,
                       height: 1.45,
@@ -365,7 +521,9 @@ class _ComparatifRegimesState extends State<_ComparatifRegimes> {
 
     Widget valeur(String v) {
       final bool nul = v == '0 \$' || v == 'aucun';
-      return Text(v,
+      final String disp =
+          estAnglais && (v == 'aucun' || v == 'aucune') ? 'none' : v;
+      return Text(disp,
           style: TextStyle(
               fontSize: 12.5,
               fontWeight: nul ? FontWeight.w400 : FontWeight.w600,
@@ -389,7 +547,7 @@ class _ComparatifRegimesState extends State<_ComparatifRegimes> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(s.titre,
+                Text(_mtr(s.titre),
                     style: const TextStyle(
                         fontWeight: FontWeight.w800, fontSize: 15)),
               ],
@@ -409,9 +567,9 @@ class _ComparatifRegimesState extends State<_ComparatifRegimes> {
                 headingRowColor: WidgetStatePropertyAll(
                     AppColors.medic.withValues(alpha: 0.10)),
                 columns: [
-                  const DataColumn(
-                      label: Text('Protection',
-                          style: TextStyle(
+                  DataColumn(
+                      label: Text(tr('Protection', 'Coverage'),
+                          style: const TextStyle(
                               fontWeight: FontWeight.w900, fontSize: 13))),
                   for (final c in cols) DataColumn(label: entete(c)),
                 ],
@@ -420,7 +578,7 @@ class _ComparatifRegimesState extends State<_ComparatifRegimes> {
                   return DataRow(cells: [
                     DataCell(SizedBox(
                       width: 150,
-                      child: Text(r.label,
+                      child: Text(_mtr(r.label),
                           style: TextStyle(
                               fontSize: 12.5,
                               color: onSurf.withValues(alpha: 0.85))),
@@ -434,7 +592,7 @@ class _ComparatifRegimesState extends State<_ComparatifRegimes> {
           if (s.note != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(s.note!,
+              child: Text(_mtr(s.note!),
                   style: TextStyle(
                       fontSize: 11.5,
                       height: 1.3,
@@ -445,12 +603,14 @@ class _ComparatifRegimesState extends State<_ComparatifRegimes> {
       );
     }
 
+    final String metiersLabel = tr('Métiers', 'Trades');
+    final String occupLabel = tr('Occupations', 'Occupations');
     return Column(
       children: [
         ChoiceSegments(
-          options: const ['Métiers', 'Occupations'],
-          selected: _metiers ? 'Métiers' : 'Occupations',
-          onChanged: (v) => setState(() => _metiers = v == 'Métiers'),
+          options: [metiersLabel, occupLabel],
+          selected: _metiers ? metiersLabel : occupLabel,
+          onChanged: (v) => setState(() => _metiers = v == metiersLabel),
         ),
         const SizedBox(height: 12),
         for (final s in _sectionsRegime) ...[

@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../l10n/lang.dart';
 import '../utils/format.dart';
 import 'heures_store.dart';
 
@@ -82,13 +83,15 @@ Future<void> partagerCsvFeuille(
     await file.writeAsString('\u{FEFF}$csv', encoding: utf8);
     await Share.shareXFiles(
       [XFile(file.path, mimeType: 'text/csv')],
-      subject: 'Feuille de temps',
+      subject: tr('Feuille de temps', 'Timesheet'),
     );
   } catch (_) {
     await Clipboard.setData(ClipboardData(text: csv));
     messenger.showSnackBar(
-      const SnackBar(
-        content: Text('Partage indisponible — CSV copié dans le presse-papiers.'),
+      SnackBar(
+        content: Text(tr(
+            'Partage indisponible — CSV copié dans le presse-papiers.',
+            'Sharing unavailable — CSV copied to the clipboard.')),
       ),
     );
   }

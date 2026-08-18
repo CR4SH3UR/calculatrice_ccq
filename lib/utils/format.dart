@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import '../l10n/lang.dart';
+
 /// Utilitaires de formatage et de conversion pour le chantier.
 ///
 /// Tout est en français québécois et pensé pour les métiers de la
@@ -48,8 +50,17 @@ class Fmt {
     'juill.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
   ];
 
-  /// Date en français court: DateTime(2027,4,25) -> "25 avr. 2027".
+  static const List<String> _monthsShort = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  /// Date courte, adaptée à la langue.
+  /// FR: DateTime(2027,4,25) -> "25 avr. 2027".  EN: -> "Apr 25, 2027".
   static String dateFr(DateTime d) {
+    if (estAnglais) {
+      return '${_monthsShort[d.month - 1]} ${d.day}, ${d.year}';
+    }
     return '${d.day} ${_moisCourts[d.month - 1]} ${d.year}';
   }
 
@@ -89,7 +100,8 @@ class Fmt {
       final int d = denom ~/ g;
       result = whole == 0 ? '$n/$d' : '$whole $n/$d';
     }
-    return negative ? '-$result po' : '$result po';
+    final String po = tr('po', 'in');
+    return negative ? '-$result $po' : '$result $po';
   }
 
   /// Convertit une longueur en pouces décimaux vers pieds-pouces.
@@ -102,8 +114,10 @@ class Fmt {
     final double remInches = abs - feet * inchesPerFoot;
     final String inchStr = inchesToFraction(remInches, denom: denom);
     final String sign = negative ? '-' : '';
+    final String pi = tr('pi', 'ft');
+    final String po = tr('po', 'in');
     if (feet == 0) return '$sign$inchStr';
-    return '$sign$feet pi ${inchStr.replaceAll(' po', '')} po';
+    return '$sign$feet $pi ${inchStr.replaceAll(' $po', '')} $po';
   }
 
   static int _gcd(int a, int b) {

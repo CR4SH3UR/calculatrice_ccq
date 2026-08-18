@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/ccq_data.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
@@ -34,21 +35,25 @@ class _TauxMetiersScreenState extends State<TauxMetiersScreen> {
     final List<Metier> metiers = q.isEmpty
         ? CcqData.metiers
         : CcqData.metiers
-            .where((m) => foldRecherche(m.nom).contains(q))
+            .where((m) =>
+                foldRecherche('${m.nom} ${m.nomAffiche}').contains(q))
             .toList();
 
     return ToolScaffold(
-      title: 'Taux par métier',
+      title: tr('Taux par métier', 'Rates by trade'),
       children: [
         InfoBanner(
-          text:
+          text: tr(
               'Taux de salaire par grille — ${CcqData.enVigueurTexte}. '
-              'Touche un métier pour voir les paliers et les prochains taux. '
-              '${CcqData.source}',
+                  'Touche un métier pour voir les paliers et les prochains taux. '
+                  '${CcqData.source}',
+              'Wage rates by schedule — ${CcqData.enVigueurTexte}. '
+                  'Tap a trade to see the steps and upcoming rates. '
+                  '${CcqData.source}'),
           color: AppColors.warning,
         ),
         const SizedBox(height: 16),
-        Text('Convention (secteur)',
+        Text(tr('Convention (secteur)', 'Agreement (sector)'),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color:
@@ -77,7 +82,7 @@ class _TauxMetiersScreenState extends State<TauxMetiersScreen> {
           controller: _searchCtrl,
           onChanged: (v) => setState(() => _q = v),
           decoration: InputDecoration(
-            hintText: 'Chercher un métier…',
+            hintText: tr('Chercher un métier…', 'Search a trade…'),
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _q.isEmpty
                 ? null
@@ -95,7 +100,7 @@ class _TauxMetiersScreenState extends State<TauxMetiersScreen> {
           Padding(
             padding: const EdgeInsets.all(24),
             child: Center(
-              child: Text('Aucun métier pour « $_q »',
+              child: Text('${tr('Aucun métier pour', 'No trade for')} « $_q »',
                   style: TextStyle(
                       color: Theme.of(context)
                           .colorScheme
@@ -136,7 +141,7 @@ class _MetierTile extends StatelessWidget {
             ),
             child: Icon(metier.icon, color: AppColors.infos, size: 22),
           ),
-          title: Text(metier.nom,
+          title: Text(metier.nomAffiche,
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
           subtitle: Text('$libelleComp : ${Fmt.money(comp)}/h',
               style: const TextStyle(
@@ -163,7 +168,7 @@ class _MetierTile extends StatelessWidget {
                   const Icon(Icons.trending_up,
                       size: 17, color: AppColors.success),
                   const SizedBox(width: 6),
-                  Text('Prochains taux ($libelleComp)',
+                  Text('${tr('Prochains taux', 'Upcoming rates')} ($libelleComp)',
                       style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 12.5,
@@ -205,21 +210,24 @@ class FeriesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ToolScaffold(
-      title: 'Jours fériés & vacances',
+      title: tr('Jours fériés & vacances', 'Holidays & vacations'),
       children: [
-        const SectionTitle('Jours fériés chômés et payés',
+        SectionTitle(tr('Jours fériés chômés et payés', 'Paid statutory holidays'),
             color: AppColors.infos),
         ...CcqData.feries.map((f) => _FerieTile(ferie: f)),
         const SizedBox(height: 16),
-        const SectionTitle('Vacances de la construction',
+        SectionTitle(tr('Vacances de la construction', 'Construction holidays'),
             color: AppColors.infos),
         ...CcqData.vacancesConstruction.map((f) => _FerieTile(ferie: f)),
         const SizedBox(height: 16),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Le traitement exact des jours fériés et les dates des vacances '
-              'de la construction sont fixés par convention et publiés chaque '
-              'année. Confirme les dates officielles sur ccq.org.',
+                  'de la construction sont fixés par convention et publiés chaque '
+                  'année. Confirme les dates officielles sur ccq.org.',
+              'The exact treatment of holidays and the construction vacation '
+                  'dates are set by agreement and published each year. Confirm '
+                  'the official dates on ccq.org.'),
         ),
       ],
     );
@@ -274,7 +282,7 @@ class SecuriteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ToolScaffold(
-      title: 'Santé-sécurité',
+      title: tr('Santé-sécurité', 'Health & safety'),
       children: [
         Container(
           padding: const EdgeInsets.all(16),
@@ -291,12 +299,14 @@ class SecuriteScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Urgence : 911',
-                        style: TextStyle(
+                    Text(tr('Urgence : 911', 'Emergency: 911'),
+                        style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 18,
                             color: AppColors.danger)),
-                    Text('Accident grave ou danger immédiat — appelle tout de suite.',
+                    Text(
+                        tr('Accident grave ou danger immédiat — appelle tout de suite.',
+                            'Serious accident or immediate danger — call right away.'),
                         style: TextStyle(
                             fontSize: 12.5,
                             color: Theme.of(context)
@@ -310,15 +320,18 @@ class SecuriteScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        const SectionTitle('Aide-mémoire sur le chantier',
+        SectionTitle(tr('Aide-mémoire sur le chantier', 'On-site checklist'),
             color: AppColors.infos),
         ...CcqData.securite.map((c) => _SecuriteCard(conseil: c)),
         const SizedBox(height: 8),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Rappels généraux — ce n\'est pas un avis juridique. Réfère-toi '
-              'à la CNESST, au Code de sécurité pour les travaux de '
-              'construction et à ton représentant en santé-sécurité.',
+                  'à la CNESST, au Code de sécurité pour les travaux de '
+                  'construction et à ton représentant en santé-sécurité.',
+              'General reminders — this is not legal advice. Refer to the '
+                  'CNESST, the Safety Code for the construction industry and '
+                  'your health & safety representative.'),
         ),
       ],
     );
@@ -376,14 +389,16 @@ class ContactsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ToolScaffold(
-      title: 'Numéros utiles',
+      title: tr('Numéros utiles', 'Useful numbers'),
       children: [
         ...CcqData.ressources.map((r) => _RessourceCard(ressource: r)),
         const SizedBox(height: 8),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Numéros marqués « à confirmer » : valide-les sur les sites '
-              'officiels (ccq.org, cnesst.gouv.qc.ca) avant de t\'y fier.',
+                  'officiels (ccq.org, cnesst.gouv.qc.ca) avant de t\'y fier.',
+              'Numbers marked « to confirm »: verify them on the official '
+                  'sites (ccq.org, cnesst.gouv.qc.ca) before relying on them.'),
         ),
       ],
     );
@@ -436,8 +451,8 @@ class _RessourceCard extends StatelessWidget {
                             color: AppColors.warning.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text('à confirmer',
-                              style: TextStyle(
+                          child: Text(tr('à confirmer', 'to confirm'),
+                              style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.warning)),
@@ -464,11 +479,13 @@ class _RessourceCard extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.copy, size: 20),
-              tooltip: 'Copier',
+              tooltip: tr('Copier', 'Copy'),
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: ressource.numero));
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Copié : ${ressource.numero}')),
+                  SnackBar(
+                      content: Text(
+                          '${tr('Copié', 'Copied')} : ${ressource.numero}')),
                 );
               },
             ),

@@ -3,15 +3,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../data/ccq_data.dart';
+import '../l10n/lang.dart';
 
 /// Contexte de travail (horaire) — sélectionne l'annexe de taux à lire.
 enum ContexteTravail {
-  jour('Jour'),
-  nuit('Nuit'),
-  chantierIsole('Isolé');
+  jour('Jour', 'Day'),
+  nuit('Nuit', 'Night'),
+  chantierIsole('Isolé', 'Remote');
 
-  const ContexteTravail(this.label);
-  final String label;
+  const ContexteTravail(this.labelFr, this.labelEn);
+  final String labelFr;
+  final String labelEn;
+
+  String get label => tr(labelFr, labelEn);
 }
 
 /// Client de l'**API officielle des taux de salaire de la CCQ**
