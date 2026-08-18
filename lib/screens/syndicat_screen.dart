@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/link_tile.dart';
@@ -61,41 +62,51 @@ class SyndicatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ToolScaffold(
-      title: 'Syndicats',
+      title: tr('Syndicats', 'Unions'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'La construction au Québec compte 5 associations syndicales '
-              'représentatives (loi R-20). Tu choisis ton allégeance lors du '
-              'scrutin syndical; la représentativité ci-dessous vient du '
-              'scrutin de 2024. Touche « Représentants » pour joindre le tien.',
+                  'représentatives (loi R-20). Tu choisis ton allégeance lors '
+                  'du scrutin syndical; la représentativité ci-dessous vient du '
+                  'scrutin de 2024. Touche « Représentants » pour joindre le '
+                  'tien.',
+              'Quebec construction has 5 representative union associations '
+                  '(Act R-20). You choose your allegiance at the union vote; the '
+                  'representativity below comes from the 2024 vote. Tap '
+                  '« Representatives » to reach yours.'),
           icon: Icons.groups,
           color: AppColors.syndicat,
         ),
         const SizedBox(height: 16),
-        const SectionTitle('Les 5 associations', color: AppColors.syndicat),
+        SectionTitle(tr('Les 5 associations', 'The 5 associations'),
+            color: AppColors.syndicat),
         ..._unions.map((u) => _UnionCard(union: u)),
         const SizedBox(height: 10),
-        const SectionTitle('Cotisations syndicales',
+        SectionTitle(tr('Cotisations syndicales', 'Union dues'),
             color: AppColors.syndicat),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'La cotisation syndicale est prélevée chaque semaine sur ta paie. '
-              'Le montant varie selon le syndicat, le métier et l\'horaire de '
-              'travail. Tu la vois sur ton relevé de paie.',
+                  'Le montant varie selon le syndicat, le métier et l\'horaire '
+                  'de travail. Tu la vois sur ton relevé de paie.',
+              'Union dues are deducted from your pay each week. The amount '
+                  'varies by union, trade and work schedule. You see it on your '
+                  'pay stub.'),
         ),
         const SizedBox(height: 12),
-        const LinkTile(
+        LinkTile(
           icon: Icons.request_quote,
-          title: 'Taux de cotisations syndicales',
-          subtitle: 'Montants officiels · ccq.org',
+          title: tr('Taux de cotisations syndicales', 'Union dues rates'),
+          subtitle: tr('Montants officiels · ccq.org', 'Official amounts · ccq.org'),
           url: 'https://www.ccq.org/fr-CA/avantages-sociaux/salaire-taux/cotisations-syndicales',
           color: AppColors.syndicat,
         ),
-        const LinkTile(
+        LinkTile(
           icon: Icons.how_to_vote,
-          title: 'Associations & scrutin syndical',
-          subtitle: 'Rôles, représentativité, changement d\'allégeance',
+          title: tr('Associations & scrutin syndical', 'Associations & union vote'),
+          subtitle: tr('Rôles, représentativité, changement d\'allégeance',
+              'Roles, representativity, changing allegiance'),
           url: 'https://www.ccq.org/fr-CA/loi-r20/relations-travail/associations-syndicales',
           color: AppColors.syndicat,
         ),
@@ -177,7 +188,7 @@ class _UnionCard extends StatelessWidget {
                 Expanded(
                   child: _LinkChip(
                     icon: Icons.language,
-                    label: 'Site web',
+                    label: tr('Site web', 'Website'),
                     onTap: () => openUrl(context, union.site),
                   ),
                 ),
@@ -185,7 +196,7 @@ class _UnionCard extends StatelessWidget {
                 Expanded(
                   child: _LinkChip(
                     icon: Icons.contact_phone,
-                    label: 'Représentants',
+                    label: tr('Représentants', 'Representatives'),
                     filled: true,
                     onTap: () => openUrl(context, union.representants),
                   ),
