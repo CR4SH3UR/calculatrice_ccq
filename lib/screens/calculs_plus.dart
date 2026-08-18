@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
@@ -37,6 +38,27 @@ const Map<String, List<_Champ>> _formesBeton = {
   ],
 };
 
+String _formeBetonLabel(String k) => tr(
+    k,
+    const {
+          'Dalle': 'Slab',
+          'Mur': 'Wall',
+          'Colonne ronde': 'Round column',
+          'Semelle': 'Footing',
+        }[k] ??
+        k);
+
+String _champLabel(String k) => tr(
+    k,
+    const {
+          'Longueur': 'Length',
+          'Largeur': 'Width',
+          'Épaisseur': 'Thickness',
+          'Hauteur': 'Height',
+          'Diamètre': 'Diameter',
+        }[k] ??
+        k);
+
 class BetonAvanceScreen extends StatefulWidget {
   const BetonAvanceScreen({super.key});
 
@@ -64,7 +86,6 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
     super.dispose();
   }
 
-  /// Volume d'un seul élément, en m³ (null si champs incomplets).
   double? _volumeUnitaire() {
     final double? a = parseNum(_a.text);
     final double? b = parseNum(_b.text);
@@ -78,7 +99,7 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
         return a * b * (c / 100);
       case 'Colonne ronde':
         if (a == null || b == null) return null;
-        final double rayon = a / 200; // diamètre cm → rayon m
+        final double rayon = a / 200;
         return math.pi * rayon * rayon * b;
       case 'Semelle':
         if (a == null || b == null || c == null) return null;
@@ -105,11 +126,12 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
         sacs = (m3Perte * 1000 / rendement).ceil();
       }
     }
+    final String vg3 = tr('vg³', 'yd³');
 
     return ToolScaffold(
-      title: 'Béton avancé',
+      title: tr('Béton avancé', 'Advanced concrete'),
       children: [
-        Text('Forme',
+        Text(tr('Forme', 'Shape'),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context)
@@ -124,27 +146,28 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
             prefixIcon: Icon(Icons.category_outlined),
           ),
           items: _formesBeton.keys
-              .map((f) => DropdownMenuItem(value: f, child: Text(f)))
+              .map((f) =>
+                  DropdownMenuItem(value: f, child: Text(_formeBetonLabel(f))))
               .toList(),
           onChanged: (f) => f == null ? null : setState(() => _forme = f),
         ),
         const SizedBox(height: 14),
         NumberField(
             controller: _a,
-            label: champs[0].label,
+            label: _champLabel(champs[0].label),
             suffix: champs[0].suffix,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
         NumberField(
             controller: _b,
-            label: champs[1].label,
+            label: _champLabel(champs[1].label),
             suffix: champs[1].suffix,
             onChanged: (_) => setState(() {})),
         if (champs.length > 2) ...[
           const SizedBox(height: 12),
           NumberField(
               controller: _c,
-              label: champs[2].label,
+              label: _champLabel(champs[2].label),
               suffix: champs[2].suffix,
               onChanged: (_) => setState(() {})),
         ],
@@ -154,7 +177,7 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
             Expanded(
               child: NumberField(
                   controller: _qte,
-                  label: 'Quantité',
+                  label: tr('Quantité', 'Quantity'),
                   suffix: '×',
                   onChanged: (_) => setState(() {})),
             ),
@@ -162,7 +185,7 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
             Expanded(
               child: NumberField(
                   controller: _perte,
-                  label: 'Perte',
+                  label: tr('Perte', 'Waste'),
                   suffix: '%',
                   onChanged: (_) => setState(() {})),
             ),
@@ -171,37 +194,45 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
         const SizedBox(height: 16),
         if (m3 != null)
           ResultCard(
-            label: 'Volume à commander',
-            value: '${Fmt.number(verges!, decimals: 2)} vg³',
+            label: tr('Volume à commander', 'Volume to order'),
+            value: '${Fmt.number(verges!, decimals: 2)} $vg3',
             color: AppColors.chantier,
             icon: Icons.foundation,
             details: [
-              ResultLine('Volume net', '${Fmt.number(m3, decimals: 3)} m³'),
-              ResultLine('Avec perte (${Fmt.trim(perte)} %)',
+              ResultLine(tr('Volume net', 'Net volume'),
+                  '${Fmt.number(m3, decimals: 3)} m³'),
+              ResultLine('${tr('Avec perte', 'With waste')} (${Fmt.trim(perte)} %)',
                   '${Fmt.number(m3Perte!, decimals: 3)} m³',
                   strong: true),
-              ResultLine('En verges cubes', '${Fmt.number(verges, decimals: 2)} vg³',
+              ResultLine(tr('En verges cubes', 'In cubic yards'),
+                  '${Fmt.number(verges, decimals: 2)} $vg3',
                   strong: true),
               if (sacs != null)
-                ResultLine('Sacs de prémélange', '≈ $sacs sacs'),
+                ResultLine(tr('Sacs de prémélange', 'Premix bags'),
+                    '≈ $sacs ${tr('sacs', 'bags')}'),
             ],
           )
         else
-          const InfoBanner(
-            text: 'Remplis les dimensions pour obtenir le volume.',
+          InfoBanner(
+            text: tr('Remplis les dimensions pour obtenir le volume.',
+                'Fill in the dimensions to get the volume.'),
             color: AppColors.infos,
           ),
         const SizedBox(height: 14),
         NumberField(
             controller: _rendement,
-            label: 'Rendement d\'un sac',
+            label: tr('Rendement d\'un sac', 'Yield per bag'),
             suffix: 'L',
-            hint: 'ex. 13,3 (sac de 30 kg)',
+            hint: tr('ex. 13,3 (sac de 30 kg)', 'e.g. 13.3 (30 kg bag)'),
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 6),
         Text(
-            'Le rendement d\'un sac varie selon le produit — vérifie sur '
-            'l\'emballage. Le calcul de perte est un tampon; ajuste selon ta job.',
+            tr(
+                'Le rendement d\'un sac varie selon le produit — vérifie sur '
+                    'l\'emballage. Le calcul de perte est un tampon; ajuste '
+                    'selon ta job.',
+                'Bag yield varies by product — check the package. The waste '
+                    'figure is a buffer; adjust for your job.'),
             style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(context)
@@ -216,6 +247,9 @@ class _BetonAvanceScreenState extends State<BetonAvanceScreen> {
 // ─────────────────────────────────────────────────────────────────────────
 //  COUPLE DE SERRAGE — convertisseur d'unités
 // ─────────────────────────────────────────────────────────────────────────
+String _torqueLabel(String k) =>
+    tr(k, const {'lb·pi': 'lb·ft', 'lb·po': 'lb·in'}[k] ?? k);
+
 class CoupleSerrageScreen extends StatefulWidget {
   const CoupleSerrageScreen({super.key});
 
@@ -224,7 +258,6 @@ class CoupleSerrageScreen extends StatefulWidget {
 }
 
 class _CoupleSerrageScreenState extends State<CoupleSerrageScreen> {
-  // Valeur d'une unité en N·m.
   static const Map<String, double> _versNm = {
     'N·m': 1,
     'lb·pi': 1.35581795,
@@ -247,22 +280,24 @@ class _CoupleSerrageScreenState extends State<CoupleSerrageScreen> {
     final double? nm = v == null ? null : v * _versNm[_unite]!;
 
     return ToolScaffold(
-      title: 'Couple de serrage',
+      title: tr('Couple de serrage', 'Torque'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Convertit un couple (torque) entre les unités courantes. '
-              'lb·pi = livre-pied, lb·po = livre-pouce, kgf·m = kilogramme-force '
-              'mètre.',
+                  'lb·pi = livre-pied, lb·po = livre-pouce, kgf·m = '
+                  'kilogramme-force mètre.',
+              'Converts a torque between common units. lb·ft = pound-foot, '
+                  'lb·in = pound-inch, kgf·m = kilogram-force metre.'),
           color: AppColors.infos,
         ),
         const SizedBox(height: 14),
         NumberField(
             controller: _val,
-            label: 'Valeur',
+            label: tr('Valeur', 'Value'),
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        Text('Unité de départ',
+        Text(tr('Unité de départ', 'Starting unit'),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context)
@@ -271,34 +306,37 @@ class _CoupleSerrageScreenState extends State<CoupleSerrageScreen> {
                     .withValues(alpha: 0.75))),
         const SizedBox(height: 8),
         ChoiceSegments(
-          options: _versNm.keys.toList(),
-          selected: _unite,
-          onChanged: (u) => setState(() => _unite = u),
+          options: _versNm.keys.map(_torqueLabel).toList(),
+          selected: _torqueLabel(_unite),
+          onChanged: (u) => setState(
+              () => _unite = _versNm.keys.firstWhere((k) => _torqueLabel(k) == u)),
         ),
         const SizedBox(height: 16),
         if (nm != null)
           ResultCard(
-            label: 'Équivalences',
+            label: tr('Équivalences', 'Equivalents'),
             value: '${Fmt.trim(nm, maxDecimals: 2)} N·m',
             color: AppColors.charpente,
             icon: Icons.settings,
             details: _versNm.keys
                 .where((u) => u != _unite)
                 .map((u) => ResultLine(
-                    u, Fmt.trim(nm / _versNm[u]!, maxDecimals: 3),
+                    _torqueLabel(u), Fmt.trim(nm / _versNm[u]!, maxDecimals: 3),
                     strong: u == 'N·m'))
                 .toList(),
           )
         else
-          const InfoBanner(
-            text: 'Entre une valeur à convertir.',
+          InfoBanner(
+            text: tr('Entre une valeur à convertir.', 'Enter a value to convert.'),
             color: AppColors.infos,
           ),
         const SizedBox(height: 14),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Pour la valeur de serrage exacte d\'un boulon, réfère-toi aux '
-              'spécifications du fabricant ou de l\'ingénieur.',
+                  'spécifications du fabricant ou de l\'ingénieur.',
+              'For a bolt\'s exact torque value, refer to the manufacturer\'s or '
+                  'engineer\'s specifications.'),
         ),
       ],
     );
@@ -346,19 +384,22 @@ class _RappelRetroScreenState extends State<RappelRetroScreen> {
     }
 
     return ToolScaffold(
-      title: 'Rappel rétroactif',
+      title: tr('Rappel rétroactif', 'Retro pay'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Quand un nouveau taux est signé rétroactivement, tu as droit à '
-              'la différence sur les heures déjà travaillées. Entre tes heures '
-              'de la période visée et les deux taux.',
+                  'la différence sur les heures déjà travaillées. Entre tes '
+                  'heures de la période visée et les deux taux.',
+              'When a new rate is signed retroactively, you\'re owed the '
+                  'difference on the hours already worked. Enter your hours for '
+                  'the period and both rates.'),
           color: AppColors.infos,
         ),
         const SizedBox(height: 14),
         NumberField(
             controller: _heures,
-            label: 'Heures dans la période',
+            label: tr('Heures dans la période', 'Hours in the period'),
             suffix: 'h',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
@@ -367,7 +408,7 @@ class _RappelRetroScreenState extends State<RappelRetroScreen> {
             Expanded(
               child: NumberField(
                   controller: _ancien,
-                  label: 'Ancien taux',
+                  label: tr('Ancien taux', 'Old rate'),
                   suffix: '\$/h',
                   onChanged: (_) => setState(() {})),
             ),
@@ -375,7 +416,7 @@ class _RappelRetroScreenState extends State<RappelRetroScreen> {
             Expanded(
               child: NumberField(
                   controller: _nouveau,
-                  label: 'Nouveau taux',
+                  label: tr('Nouveau taux', 'New rate'),
                   suffix: '\$/h',
                   onChanged: (_) => setState(() {})),
             ),
@@ -384,38 +425,47 @@ class _RappelRetroScreenState extends State<RappelRetroScreen> {
         const SizedBox(height: 6),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Ajouter les congés (13 %)',
-              style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
-          subtitle: const Text('Indemnité de vacances et congés sur le rappel',
-              style: TextStyle(fontSize: 12)),
+          title: Text(tr('Ajouter les congés (13 %)', 'Add holiday pay (13%)'),
+              style: const TextStyle(
+                  fontSize: 14.5, fontWeight: FontWeight.w600)),
+          subtitle: Text(
+              tr('Indemnité de vacances et congés sur le rappel',
+                  'Vacation/holiday allowance on the back pay'),
+              style: const TextStyle(fontSize: 12)),
           value: _avecConges,
           onChanged: (v) => setState(() => _avecConges = v),
         ),
         const SizedBox(height: 10),
         if (total != null && ecart != null)
           ResultCard(
-            label: 'Rappel à recevoir',
+            label: tr('Rappel à recevoir', 'Back pay to receive'),
             value: Fmt.money(total),
             color: ecart >= 0 ? AppColors.paie : AppColors.danger,
             icon: Icons.history,
             details: [
-              ResultLine('Écart de taux', '${Fmt.money(ecart)}/h'),
-              ResultLine('Rappel brut', Fmt.money(brut!), strong: true),
+              ResultLine(tr('Écart de taux', 'Rate difference'),
+                  '${Fmt.money(ecart)}/h'),
+              ResultLine(tr('Rappel brut', 'Gross back pay'), Fmt.money(brut!),
+                  strong: true),
               if (_avecConges)
-                ResultLine('Congés (13 %)', Fmt.money(conges!)),
-              ResultLine('Total', Fmt.money(total), strong: true),
+                ResultLine(tr('Congés (13 %)', 'Holiday (13%)'),
+                    Fmt.money(conges!)),
+              ResultLine(tr('Total', 'Total'), Fmt.money(total), strong: true),
             ],
           )
         else
-          const InfoBanner(
-            text: 'Remplis les heures et les deux taux.',
+          InfoBanner(
+            text: tr('Remplis les heures et les deux taux.',
+                'Fill in the hours and both rates.'),
             color: AppColors.infos,
           ),
         const SizedBox(height: 14),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Montant brut, avant impôts et retenues. Les modalités exactes du '
-              'rétroactif (période, taux) sont fixées par la convention.',
+                  'rétroactif (période, taux) sont fixées par la convention.',
+              'Gross amount, before taxes and deductions. The exact retro terms '
+                  '(period, rate) are set by the agreement.'),
         ),
       ],
     );

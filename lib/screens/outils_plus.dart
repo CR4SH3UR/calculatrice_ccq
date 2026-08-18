@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/ccq_data.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
@@ -11,6 +12,10 @@ import '../widgets/metier_picker.dart';
 
 const double _m2PerFt2 = 0.09290304;
 const double _m3PerFt3 = 0.0283168;
+
+/// Libellé d'un code d'unité (po→in, pi→ft, vg→yd, pi³→ft³).
+String _uLabel(String c) =>
+    tr(c, const {'po': 'in', 'pi': 'ft', 'vg': 'yd', 'pi³': 'ft³'}[c] ?? c);
 
 // ═════════════════════════════════════════════════════════════════════════
 //  CALCULATRICE STANDARD
@@ -25,7 +30,7 @@ class _CalculatriceScreenState extends State<CalculatriceScreen> {
   String _affiche = '0';
   double? _accum;
   String? _op;
-  bool _neuf = true; // prochaine touche démarre un nouveau nombre
+  bool _neuf = true;
 
   void _chiffre(String c) {
     setState(() {
@@ -103,7 +108,7 @@ class _CalculatriceScreenState extends State<CalculatriceScreen> {
   }
 
   String _fmt(double v) {
-    if (v.isNaN || v.isInfinite) return 'Erreur';
+    if (v.isNaN || v.isInfinite) return tr('Erreur', 'Error');
     return Fmt.trim(v, maxDecimals: 8);
   }
 
@@ -111,7 +116,7 @@ class _CalculatriceScreenState extends State<CalculatriceScreen> {
   Widget build(BuildContext context) {
     final onSurf = Theme.of(context).colorScheme.onSurface;
     return Scaffold(
-      appBar: AppBar(title: const Text('Calculatrice')),
+      appBar: AppBar(title: Text(tr('Calculatrice', 'Calculator'))),
       body: SafeArea(
         child: Column(
           children: [
@@ -167,9 +172,8 @@ class _CalculatriceScreenState extends State<CalculatriceScreen> {
         : fonction
             ? Theme.of(context).colorScheme.surfaceContainerHighest
             : Theme.of(context).colorScheme.surfaceContainerHigh;
-    final Color fg = op
-        ? Colors.white
-        : Theme.of(context).colorScheme.onSurface;
+    final Color fg =
+        op ? Colors.white : Theme.of(context).colorScheme.onSurface;
     return Padding(
       padding: const EdgeInsets.all(5),
       child: Material(
@@ -210,6 +214,17 @@ class _CalculatriceScreenState extends State<CalculatriceScreen> {
 // ═════════════════════════════════════════════════════════════════════════
 //  CONVERTISSEUR AVANCÉ (multi-catégories)
 // ═════════════════════════════════════════════════════════════════════════
+String _catLabel(String c) => tr(
+    c,
+    const {
+          'Longueur': 'Length',
+          'Poids': 'Weight',
+          'Volume': 'Volume',
+          'Pression': 'Pressure',
+          'Température': 'Temperature',
+        }[c] ??
+        c);
+
 class ConvertisseurAvanceScreen extends StatefulWidget {
   const ConvertisseurAvanceScreen({super.key});
   @override
@@ -218,7 +233,6 @@ class ConvertisseurAvanceScreen extends StatefulWidget {
 }
 
 class _ConvertisseurAvanceScreenState extends State<ConvertisseurAvanceScreen> {
-  // Chaque unité : facteur vers l'unité de base de la catégorie.
   static const Map<String, Map<String, double>> _cats = {
     'Longueur': {'mm': 0.001, 'cm': 0.01, 'm': 1, 'po': 0.0254, 'pi': 0.3048, 'vg': 0.9144},
     'Poids': {'g': 0.001, 'kg': 1, 'lb': 0.453592, 'tonne': 1000},
@@ -237,21 +251,21 @@ class _ConvertisseurAvanceScreenState extends State<ConvertisseurAvanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Température est gérée à part (pas dans _cats) : map vide et valeurs
-    // protégées pour ne jamais faire de « null check » sur null.
     final Map<String, double> units = _cats[_cat] ?? const {};
     final double val = parseNum(_ctrl.text) ?? 0;
     final double enBase = val * (units[_unite] ?? 1);
     return ToolScaffold(
-      title: 'Convertisseur avancé',
+      title: tr('Convertisseur avancé', 'Advanced converter'),
       children: [
         DropdownButtonFormField<String>(
           initialValue: _cat,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Catégorie'),
+          decoration: InputDecoration(labelText: tr('Catégorie', 'Category')),
           items: [
-            for (final k in _cats.keys) DropdownMenuItem(value: k, child: Text(k)),
-            const DropdownMenuItem(value: 'Température', child: Text('Température')),
+            for (final k in _cats.keys)
+              DropdownMenuItem(value: k, child: Text(_catLabel(k))),
+            DropdownMenuItem(
+                value: 'Température', child: Text(_catLabel('Température'))),
           ],
           onChanged: (v) => setState(() {
             _cat = v!;
@@ -264,25 +278,27 @@ class _ConvertisseurAvanceScreenState extends State<ConvertisseurAvanceScreen> {
         else ...[
           NumberField(
               controller: _ctrl,
-              label: 'Valeur',
+              label: tr('Valeur', 'Value'),
               allowNegative: true,
               onChanged: (_) => setState(() {})),
           const SizedBox(height: 12),
           ChoiceSegments(
-            options: units.keys.toList(),
-            selected: _unite,
-            onChanged: (v) => setState(() => _unite = v),
+            options: units.keys.map(_uLabel).toList(),
+            selected: _uLabel(_unite),
+            onChanged: (v) => setState(
+                () => _unite = units.keys.firstWhere((u) => _uLabel(u) == v)),
           ),
           const SizedBox(height: 22),
           ResultCard(
-            label: 'Équivalences',
-            value: '${Fmt.trim(val)} $_unite',
+            label: tr('Équivalences', 'Equivalents'),
+            value: '${Fmt.trim(val)} ${_uLabel(_unite)}',
             color: AppColors.chantier,
             icon: Icons.swap_horiz,
             details: [
               for (final u in units.keys)
                 if (u != _unite)
-                  ResultLine(u, Fmt.number(enBase / units[u]!, decimals: 4)),
+                  ResultLine(
+                      _uLabel(u), Fmt.number(enBase / units[u]!, decimals: 4)),
             ],
           ),
         ],
@@ -315,7 +331,7 @@ class _TemperatureConvState extends State<_TemperatureConv> {
       children: [
         NumberField(
             controller: _ctrl,
-            label: 'Température',
+            label: tr('Température', 'Temperature'),
             suffix: _celsius ? '°C' : '°F',
             allowNegative: true,
             onChanged: (_) => setState(() {})),
@@ -327,7 +343,7 @@ class _TemperatureConvState extends State<_TemperatureConv> {
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Conversion',
+          label: tr('Conversion', 'Conversion'),
           value: _celsius
               ? '${Fmt.number(f, decimals: 1)} °F'
               : '${Fmt.number(c, decimals: 1)} °C',
@@ -352,7 +368,7 @@ class _SurfaceInput extends StatelessWidget {
     required this.m2,
     required this.onUnit,
     required this.onChanged,
-    this.label = 'Surface',
+    required this.label,
   });
   final TextEditingController ctrl;
   final bool m2;
@@ -362,15 +378,16 @@ class _SurfaceInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String pi2 = tr('pi²', 'ft²');
     return Column(
       children: [
         Row(children: [
-          const Text('Unité : '),
+          Text('${tr('Unité', 'Unit')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['m²', 'pi²'],
-              selected: m2 ? 'm²' : 'pi²',
+              options: ['m²', pi2],
+              selected: m2 ? 'm²' : pi2,
               onChanged: (v) => onUnit(v == 'm²'),
             ),
           ),
@@ -379,7 +396,7 @@ class _SurfaceInput extends StatelessWidget {
         NumberField(
             controller: ctrl,
             label: label,
-            suffix: m2 ? 'm²' : 'pi²',
+            suffix: m2 ? 'm²' : pi2,
             onChanged: (_) => onChanged()),
       ],
     );
@@ -412,19 +429,21 @@ class _BardeauxScreenState extends State<BardeauxScreen> {
     final surf = parseNum(_surfCtrl.text) ?? 0;
     final perte = parseNum(_perteCtrl.text) ?? 0;
     final surfFt2 = _m2 ? surf / _m2PerFt2 : surf;
-    // 1 carré = 100 pi² ; 3 paquets par carré (bardeaux d'asphalte typiques).
     final avecPerte = surfFt2 * (1 + perte / 100);
     final carres = avecPerte / 100;
     final paquets = (carres * 3).ceil();
 
     return ToolScaffold(
-      title: 'Bardeaux',
+      title: tr('Bardeaux', 'Shingles'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estimation pour bardeaux d\'asphalte : 1 carré = 100 pi², '
-              '3 paquets par carré. Entre la surface de toit RÉELLE (pente '
-              'comprise). Ajuste la perte pour les noues et coupes.',
+                  '3 paquets par carré. Entre la surface de toit RÉELLE (pente '
+                  'comprise). Ajuste la perte pour les noues et coupes.',
+              'Estimate for asphalt shingles: 1 square = 100 ft², 3 bundles per '
+                  'square. Enter the ACTUAL roof area (slope included). Adjust '
+                  'waste for valleys and cuts.'),
           icon: Icons.roofing,
           color: AppColors.materiaux,
         ),
@@ -432,26 +451,28 @@ class _BardeauxScreenState extends State<BardeauxScreen> {
         _SurfaceInput(
             ctrl: _surfCtrl,
             m2: _m2,
-            label: 'Surface du toit',
+            label: tr('Surface du toit', 'Roof area'),
             onUnit: (v) => setState(() => _m2 = v),
             onChanged: () => setState(() {})),
         const SizedBox(height: 12),
         NumberField(
             controller: _perteCtrl,
-            label: 'Perte',
+            label: tr('Perte', 'Waste'),
             suffix: '%',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Bardeaux nécessaires',
-          value: '$paquets paquets',
+          label: tr('Bardeaux nécessaires', 'Shingles needed'),
+          value: '$paquets ${tr('paquets', 'bundles')}',
           color: AppColors.materiaux,
           icon: Icons.roofing,
           details: [
-            ResultLine('Surface', '${Fmt.number(surfFt2, decimals: 0)} pi²'),
-            ResultLine('Carrés (avec perte)',
+            ResultLine(tr('Surface', 'Area'),
+                '${Fmt.number(surfFt2, decimals: 0)} ${tr('pi²', 'ft²')}'),
+            ResultLine(tr('Carrés (avec perte)', 'Squares (with waste)'),
                 Fmt.number(carres, decimals: 2)),
-            ResultLine('Paquets (3/carré)', '$paquets', strong: true),
+            ResultLine(tr('Paquets (3/carré)', 'Bundles (3/square)'), '$paquets',
+                strong: true),
           ],
         ),
       ],
@@ -462,6 +483,17 @@ class _BardeauxScreenState extends State<BardeauxScreen> {
 // ═════════════════════════════════════════════════════════════════════════
 //  GRAVIER / REMBLAI (volume → tonnes)
 // ═════════════════════════════════════════════════════════════════════════
+String _gravLabel(String c) => tr(
+    c,
+    const {
+          'Gravier / pierre': 'Gravel / stone',
+          'Sable': 'Sand',
+          'Terre / remblai': 'Soil / fill',
+          'Asphalte': 'Asphalt',
+          'Pierre concassée 0-¾': 'Crushed stone 0-¾',
+        }[c] ??
+        c);
+
 class GravierScreen extends StatefulWidget {
   const GravierScreen({super.key});
   @override
@@ -497,23 +529,27 @@ class _GravierScreenState extends State<GravierScreen> {
     final ep = parseNum(_epCtrl.text) ?? 0;
     final double volM3;
     if (_metrique) {
-      volM3 = l * w * (ep / 100); // m × m × cm
+      volM3 = l * w * (ep / 100);
     } else {
-      volM3 = (l * w * (ep / 12)) * _m3PerFt3; // pi × pi × po
+      volM3 = (l * w * (ep / 12)) * _m3PerFt3;
     }
-    final densite = _densite[_mat]!; // t/m³
+    final densite = _densite[_mat]!;
     final tonnes = volM3 * densite;
 
-    final uBig = _metrique ? 'm' : 'pi';
-    final uSmall = _metrique ? 'cm' : 'po';
+    final uBig = _metrique ? 'm' : tr('pi', 'ft');
+    final uSmall = _metrique ? 'cm' : tr('po', 'in');
+    final String metr = tr('Métrique', 'Metric');
+    final String imp = tr('Impérial', 'Imperial');
 
     return ToolScaffold(
-      title: 'Gravier & remblai',
+      title: tr('Gravier & remblai', 'Gravel & fill'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Volume à recouvrir → tonnes de matériau. Les densités sont '
-              'approximatives (varient avec l\'humidité et le compactage).',
+                  'approximatives (varient avec l\'humidité et le compactage).',
+              'Volume to cover → tonnes of material. Densities are approximate '
+                  '(vary with moisture and compaction).'),
           icon: Icons.landscape,
           color: AppColors.materiaux,
         ),
@@ -521,22 +557,23 @@ class _GravierScreenState extends State<GravierScreen> {
         DropdownButtonFormField<String>(
           initialValue: _mat,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Matériau'),
+          decoration: InputDecoration(labelText: tr('Matériau', 'Material')),
           items: _densite.keys
               .map((k) => DropdownMenuItem(
-                  value: k, child: Text('$k  (${Fmt.trim(_densite[k]!)} t/m³)')))
+                  value: k,
+                  child: Text('${_gravLabel(k)}  (${Fmt.trim(_densite[k]!)} t/m³)')))
               .toList(),
           onChanged: (v) => setState(() => _mat = v ?? _mat),
         ),
         const SizedBox(height: 12),
         Row(children: [
-          const Text('Unités : '),
+          Text('${tr('Unités', 'Units')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['Métrique', 'Impérial'],
-              selected: _metrique ? 'Métrique' : 'Impérial',
-              onChanged: (v) => setState(() => _metrique = v == 'Métrique'),
+              options: [metr, imp],
+              selected: _metrique ? metr : imp,
+              onChanged: (v) => setState(() => _metrique = v == metr),
             ),
           ),
         ]),
@@ -545,33 +582,35 @@ class _GravierScreenState extends State<GravierScreen> {
           Expanded(
               child: NumberField(
                   controller: _lCtrl,
-                  label: 'Longueur',
+                  label: tr('Longueur', 'Length'),
                   suffix: uBig,
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 10),
           Expanded(
               child: NumberField(
                   controller: _wCtrl,
-                  label: 'Largeur',
+                  label: tr('Largeur', 'Width'),
                   suffix: uBig,
                   onChanged: (_) => setState(() {}))),
         ]),
         const SizedBox(height: 12),
         NumberField(
             controller: _epCtrl,
-            label: 'Épaisseur',
+            label: tr('Épaisseur', 'Thickness'),
             suffix: uSmall,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Matériau requis',
+          label: tr('Matériau requis', 'Material needed'),
           value: '${Fmt.number(tonnes, decimals: 2)} t',
           color: AppColors.materiaux,
           icon: Icons.landscape,
           details: [
-            ResultLine('Volume', '${Fmt.number(volM3, decimals: 2)} m³'),
-            ResultLine('Densité', '${Fmt.trim(densite)} t/m³'),
-            ResultLine('Tonnes', '${Fmt.number(tonnes, decimals: 2)} t',
+            ResultLine(tr('Volume', 'Volume'),
+                '${Fmt.number(volM3, decimals: 2)} m³'),
+            ResultLine(tr('Densité', 'Density'), '${Fmt.trim(densite)} t/m³'),
+            ResultLine(tr('Tonnes', 'Tonnes'),
+                '${Fmt.number(tonnes, decimals: 2)} t',
                 strong: true),
           ],
         ),
@@ -591,7 +630,7 @@ class CeramiqueScreen extends StatefulWidget {
 
 class _CeramiqueScreenState extends State<CeramiqueScreen> {
   final _surfCtrl = TextEditingController();
-  final _tuileCtrl = TextEditingController(text: '30'); // cm (côté)
+  final _tuileCtrl = TextEditingController(text: '30');
   final _perteCtrl = TextEditingController(text: '10');
   bool _m2 = true;
 
@@ -606,22 +645,23 @@ class _CeramiqueScreenState extends State<CeramiqueScreen> {
   @override
   Widget build(BuildContext context) {
     final surf = parseNum(_surfCtrl.text) ?? 0;
-    final cote = parseNum(_tuileCtrl.text) ?? 30; // cm
+    final cote = parseNum(_tuileCtrl.text) ?? 30;
     final perte = parseNum(_perteCtrl.text) ?? 0;
     final surfM2 = _m2 ? surf : surf * _m2PerFt2;
-    final aireTuile = (cote / 100) * (cote / 100); // m²
-    final nb = aireTuile > 0
-        ? (surfM2 / aireTuile * (1 + perte / 100)).ceil()
-        : 0;
-    final boites = (nb / 10).ceil(); // ~10 tuiles/boîte (indicatif)
+    final aireTuile = (cote / 100) * (cote / 100);
+    final nb =
+        aireTuile > 0 ? (surfM2 / aireTuile * (1 + perte / 100)).ceil() : 0;
+    final boites = (nb / 10).ceil();
 
     return ToolScaffold(
-      title: 'Céramique',
+      title: tr('Céramique', 'Tile'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Nombre de tuiles selon la surface et le format (tuiles carrées). '
-              'Prévois de la perte pour les coupes.',
+                  'Prévois de la perte pour les coupes.',
+              'Number of tiles from area and size (square tiles). Allow waste '
+                  'for cuts.'),
           icon: Icons.dashboard,
           color: AppColors.materiaux,
         ),
@@ -629,7 +669,7 @@ class _CeramiqueScreenState extends State<CeramiqueScreen> {
         _SurfaceInput(
             ctrl: _surfCtrl,
             m2: _m2,
-            label: 'Surface à couvrir',
+            label: tr('Surface à couvrir', 'Area to cover'),
             onUnit: (v) => setState(() => _m2 = v),
             onChanged: () => setState(() {})),
         const SizedBox(height: 12),
@@ -637,28 +677,31 @@ class _CeramiqueScreenState extends State<CeramiqueScreen> {
           Expanded(
               child: NumberField(
                   controller: _tuileCtrl,
-                  label: 'Côté de la tuile',
+                  label: tr('Côté de la tuile', 'Tile side'),
                   suffix: 'cm',
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 10),
           Expanded(
               child: NumberField(
                   controller: _perteCtrl,
-                  label: 'Perte',
+                  label: tr('Perte', 'Waste'),
                   suffix: '%',
                   onChanged: (_) => setState(() {}))),
         ]),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Tuiles nécessaires',
-          value: '$nb tuiles',
+          label: tr('Tuiles nécessaires', 'Tiles needed'),
+          value: '$nb ${tr('tuiles', 'tiles')}',
           color: AppColors.materiaux,
           icon: Icons.grid_on,
           details: [
-            ResultLine('Surface', '${Fmt.number(surfM2, decimals: 2)} m²'),
-            ResultLine('Format', '${Fmt.trim(cote)} × ${Fmt.trim(cote)} cm'),
-            ResultLine('Tuiles (avec perte)', '$nb', strong: true),
-            ResultLine('Boîtes (~10/boîte)', '$boites'),
+            ResultLine(tr('Surface', 'Area'),
+                '${Fmt.number(surfM2, decimals: 2)} m²'),
+            ResultLine(tr('Format', 'Size'),
+                '${Fmt.trim(cote)} × ${Fmt.trim(cote)} cm'),
+            ResultLine(tr('Tuiles (avec perte)', 'Tiles (with waste)'), '$nb',
+                strong: true),
+            ResultLine(tr('Boîtes (~10/boîte)', 'Boxes (~10/box)'), '$boites'),
           ],
         ),
       ],
@@ -677,7 +720,7 @@ class PenteTuyauScreen extends StatefulWidget {
 
 class _PenteTuyauScreenState extends State<PenteTuyauScreen> {
   final _longCtrl = TextEditingController();
-  final _penteCtrl = TextEditingController(text: '0.25'); // po/pi (1/4")
+  final _penteCtrl = TextEditingController(text: '0.25');
   bool _metres = false;
 
   @override
@@ -690,30 +733,33 @@ class _PenteTuyauScreenState extends State<PenteTuyauScreen> {
   @override
   Widget build(BuildContext context) {
     final long = parseNum(_longCtrl.text) ?? 0;
-    final pente = parseNum(_penteCtrl.text) ?? 0; // po par pi
+    final pente = parseNum(_penteCtrl.text) ?? 0;
     final longPi = _metres ? long / 0.3048 : long;
     final chutePo = longPi * pente;
     final chuteMm = chutePo * 25.4;
     final pct = pente / 12 * 100;
+    final String pi = tr('pi', 'ft');
 
     return ToolScaffold(
-      title: 'Pente de tuyau',
+      title: tr('Pente de tuyau', 'Pipe slope'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Chute totale d\'un tuyau selon sa longueur et sa pente. Repère '
-              'courant pour le drainage : 1/4 po par pied (≈ 2 %).',
+                  'courant pour le drainage : 1/4 po par pied (≈ 2 %).',
+              'Total fall of a pipe from its length and slope. Common drainage '
+                  'guide: 1/4 in per foot (≈ 2%).'),
           icon: Icons.plumbing,
           color: AppColors.chantier,
         ),
         const SizedBox(height: 16),
         Row(children: [
-          const Text('Longueur en : '),
+          Text('${tr('Longueur en', 'Length in')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['pi', 'm'],
-              selected: _metres ? 'm' : 'pi',
+              options: [pi, 'm'],
+              selected: _metres ? 'm' : pi,
               onChanged: (v) => setState(() => _metres = v == 'm'),
             ),
           ),
@@ -721,26 +767,28 @@ class _PenteTuyauScreenState extends State<PenteTuyauScreen> {
         const SizedBox(height: 14),
         NumberField(
             controller: _longCtrl,
-            label: 'Longueur du tuyau',
-            suffix: _metres ? 'm' : 'pi',
+            label: tr('Longueur du tuyau', 'Pipe length'),
+            suffix: _metres ? 'm' : pi,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
         NumberField(
             controller: _penteCtrl,
-            label: 'Pente',
-            suffix: 'po/pi',
+            label: tr('Pente', 'Slope'),
+            suffix: tr('po/pi', 'in/ft'),
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Chute totale',
+          label: tr('Chute totale', 'Total fall'),
           value: Fmt.inchesToFraction(chutePo),
           color: AppColors.chantier,
           icon: Icons.trending_down,
           details: [
-            ResultLine('Chute (décimal)',
-                '${Fmt.number(chutePo, decimals: 2)} po'),
-            ResultLine('Millimètres', '${Fmt.number(chuteMm, decimals: 0)} mm'),
-            ResultLine('Pourcentage', Fmt.percent(pct), strong: true),
+            ResultLine(tr('Chute (décimal)', 'Fall (decimal)'),
+                '${Fmt.number(chutePo, decimals: 2)} ${tr('po', 'in')}'),
+            ResultLine(tr('Millimètres', 'Millimeters'),
+                '${Fmt.number(chuteMm, decimals: 0)} mm'),
+            ResultLine(tr('Pourcentage', 'Percentage'), Fmt.percent(pct),
+                strong: true),
           ],
         ),
       ],
@@ -769,32 +817,35 @@ class _EchelleScreenState extends State<EchelleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final h = parseNum(_hCtrl.text) ?? 0; // hauteur du point d'appui
-    final recul = h / 4; // règle 4:1
-    final longueur =
-        (h * h + recul * recul); // au carré → racine ci-dessous
+    final h = parseNum(_hCtrl.text) ?? 0;
+    final recul = h / 4;
+    final longueur = (h * h + recul * recul);
     final longEchelle = longueur > 0 ? _sqrt(longueur) : 0.0;
-    final u = _metres ? 'm' : 'pi';
+    final u = _metres ? 'm' : tr('pi', 'ft');
+    final String pi = tr('pi', 'ft');
 
     return ToolScaffold(
-      title: 'Échelle sécuritaire',
+      title: tr('Échelle sécuritaire', 'Safe ladder'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Règle 4:1 (75°) : pour chaque 4 unités de hauteur, éloigne la '
-              'base de 1 unité du mur. Une échelle d\'appui doit dépasser le '
-              'palier d\'environ 1 m (3 pi).',
+                  'base de 1 unité du mur. Une échelle d\'appui doit dépasser '
+                  'le palier d\'environ 1 m (3 pi).',
+              'The 4:1 rule (75°): for every 4 units of height, move the base 1 '
+                  'unit from the wall. A leaning ladder should extend about 1 m '
+                  '(3 ft) above the landing.'),
           icon: Icons.stairs,
           color: AppColors.chantier,
         ),
         const SizedBox(height: 16),
         Row(children: [
-          const Text('Unités : '),
+          Text('${tr('Unités', 'Units')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['m', 'pi'],
-              selected: _metres ? 'm' : 'pi',
+              options: ['m', pi],
+              selected: _metres ? 'm' : pi,
               onChanged: (v) => setState(() => _metres = v == 'm'),
             ),
           ),
@@ -802,20 +853,21 @@ class _EchelleScreenState extends State<EchelleScreen> {
         const SizedBox(height: 14),
         NumberField(
             controller: _hCtrl,
-            label: 'Hauteur du point d\'appui',
+            label: tr('Hauteur du point d\'appui', 'Support point height'),
             suffix: u,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Recul de la base',
+          label: tr('Recul de la base', 'Base setback'),
           value: '${Fmt.number(recul, decimals: 2)} $u',
           color: AppColors.chantier,
           icon: Icons.architecture,
           details: [
-            ResultLine('Hauteur', '${Fmt.trim(h)} $u'),
-            ResultLine('Recul (¼ de la hauteur)',
-                '${Fmt.number(recul, decimals: 2)} $u', strong: true),
-            ResultLine('Longueur d\'échelle min.',
+            ResultLine(tr('Hauteur', 'Height'), '${Fmt.trim(h)} $u'),
+            ResultLine(tr('Recul (¼ de la hauteur)', 'Setback (¼ of height)'),
+                '${Fmt.number(recul, decimals: 2)} $u',
+                strong: true),
+            ResultLine(tr('Longueur d\'échelle min.', 'Min. ladder length'),
                 '${Fmt.number(longEchelle, decimals: 2)} $u'),
           ],
         ),
@@ -844,7 +896,7 @@ class SolivesScreen extends StatefulWidget {
 class _SolivesScreenState extends State<SolivesScreen> {
   final _longCtrl = TextEditingController();
   bool _metres = false;
-  int _entraxe = 16; // pouces
+  int _entraxe = 16;
 
   @override
   void dispose() {
@@ -857,26 +909,30 @@ class _SolivesScreenState extends State<SolivesScreen> {
     final long = parseNum(_longCtrl.text) ?? 0;
     final longPo = _metres ? long * 1000 / 25.4 : long * 12;
     final nb = longPo > 0 ? (longPo / _entraxe).ceil() + 1 : 0;
+    final String pi = tr('pi', 'ft');
 
     return ToolScaffold(
-      title: 'Solives / poutrelles',
+      title: tr('Solives / poutrelles', 'Joists'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Nombre de solives pour un plancher ou un plafond selon la '
-              'longueur du mur porteur et l\'entraxe. Ajoute le doublage aux '
-              'extrémités et sous les cloisons.',
+                  'longueur du mur porteur et l\'entraxe. Ajoute le doublage '
+                  'aux extrémités et sous les cloisons.',
+              'Number of joists for a floor or ceiling from the bearing-wall '
+                  'length and spacing. Add doubling at the ends and under '
+                  'partitions.'),
           icon: Icons.view_week,
           color: AppColors.charpente,
         ),
         const SizedBox(height: 16),
         Row(children: [
-          const Text('Longueur en : '),
+          Text('${tr('Longueur en', 'Length in')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['pi', 'm'],
-              selected: _metres ? 'm' : 'pi',
+              options: [pi, 'm'],
+              selected: _metres ? 'm' : pi,
               onChanged: (v) => setState(() => _metres = v == 'm'),
             ),
           ),
@@ -884,11 +940,11 @@ class _SolivesScreenState extends State<SolivesScreen> {
         const SizedBox(height: 14),
         NumberField(
             controller: _longCtrl,
-            label: 'Longueur (mur porteur)',
-            suffix: _metres ? 'm' : 'pi',
+            label: tr('Longueur (mur porteur)', 'Length (bearing wall)'),
+            suffix: _metres ? 'm' : pi,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 14),
-        Text('Entraxe (centre à centre)',
+        Text(tr('Entraxe (centre à centre)', 'Spacing (center to center)'),
             style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context)
@@ -915,13 +971,16 @@ class _SolivesScreenState extends State<SolivesScreen> {
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Solives nécessaires',
+          label: tr('Solives nécessaires', 'Joists needed'),
           value: '$nb',
           color: AppColors.charpente,
           icon: Icons.view_week,
           details: [
-            ResultLine('Entraxe', '$_entraxe po c/c'),
-            ResultLine('(longueur ÷ entraxe) + 1', '$nb', strong: true),
+            ResultLine(tr('Entraxe', 'Spacing'),
+                '$_entraxe ${tr('po c/c', 'in o.c.')}'),
+            ResultLine(tr('(longueur ÷ entraxe) + 1', '(length ÷ spacing) + 1'),
+                '$nb',
+                strong: true),
           ],
         ),
       ],
@@ -951,12 +1010,14 @@ class _ComparateurScreenState extends State<ComparateurScreen> {
     final onSurf = Theme.of(context).colorScheme.onSurface;
 
     return ToolScaffold(
-      title: 'Comparateur de grilles',
+      title: tr('Comparateur de grilles', 'Grid comparator'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Le même métier (compagnon) payé selon les 5 conventions. '
-              'En vigueur le 26 avril 2026 — à valider sur ccq.org.',
+                  'En vigueur le 26 avril 2026 — à valider sur ccq.org.',
+              'The same trade (journeyman) paid under the 5 agreements. In '
+                  'effect April 26, 2026 — verify on ccq.org.'),
           icon: Icons.compare_arrows,
           color: AppColors.paie,
         ),
@@ -1038,20 +1099,23 @@ class _SalaireAnnuelScreenState extends State<SalaireAnnuelScreen> {
     final annuel = hebdo * sem;
 
     return ToolScaffold(
-      title: 'Salaire annuel',
+      title: tr('Salaire annuel', 'Annual salary'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estime ton revenu annuel selon ton taux, tes heures par semaine '
-              'et le nombre de semaines travaillées (la construction est '
-              'saisonnière — souvent moins de 52 semaines).',
+                  'et le nombre de semaines travaillées (la construction est '
+                  'saisonnière — souvent moins de 52 semaines).',
+              'Estimate your annual income from your rate, weekly hours and the '
+                  'number of weeks worked (construction is seasonal — often less '
+                  'than 52 weeks).'),
           icon: Icons.calendar_month,
           color: AppColors.paie,
         ),
         const SizedBox(height: 16),
         NumberField(
             controller: _tauxCtrl,
-            label: 'Taux horaire',
+            label: tr('Taux horaire', 'Hourly rate'),
             suffix: '\$/h',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
@@ -1059,27 +1123,29 @@ class _SalaireAnnuelScreenState extends State<SalaireAnnuelScreen> {
           Expanded(
               child: NumberField(
                   controller: _hSemCtrl,
-                  label: 'Heures / semaine',
+                  label: tr('Heures / semaine', 'Hours / week'),
                   suffix: 'h',
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 10),
           Expanded(
               child: NumberField(
                   controller: _semCtrl,
-                  label: 'Semaines / an',
+                  label: tr('Semaines / an', 'Weeks / yr'),
                   onChanged: (_) => setState(() {}))),
         ]),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Revenu annuel (brut)',
+          label: tr('Revenu annuel (brut)', 'Annual income (gross)'),
           value: Fmt.money(annuel),
           color: AppColors.paie,
           icon: Icons.savings,
           details: [
-            ResultLine('Par semaine', Fmt.money(hebdo)),
-            ResultLine('Annuel (${Fmt.trim(sem)} sem.)', Fmt.money(annuel),
+            ResultLine(tr('Par semaine', 'Per week'), Fmt.money(hebdo)),
+            ResultLine('${tr('Annuel', 'Annual')} (${Fmt.trim(sem)} ${tr('sem.', 'wks')})',
+                Fmt.money(annuel),
                 strong: true),
-            ResultLine('Avec congés 13 %', Fmt.money(annuel * 1.13)),
+            ResultLine(tr('Avec congés 13 %', 'With 13% holiday'),
+                Fmt.money(annuel * 1.13)),
           ],
         ),
       ],
@@ -1119,28 +1185,34 @@ class _AiresScreenState extends State<AiresScreen> {
     final b = parseNum(_bCtrl.text) ?? 0;
     final c = parseNum(_cCtrl.text) ?? 0;
     final d = parseNum(_dCtrl.text) ?? 0;
-    final double aire =
-        _forme == 'Trapèze' ? (a + b) / 2 * c : a * b - c * d;
+    final double aire = _forme == 'Trapèze' ? (a + b) / 2 * c : a * b - c * d;
     final aireM2 = _m ? aire : aire * _m2PerFt2;
     final aireFt2 = _m ? aire / _m2PerFt2 : aire;
-    final u = _m ? 'm' : 'pi';
+    final u = _m ? 'm' : tr('pi', 'ft');
+    final String pi = tr('pi', 'ft');
+
+    final Map<String, String> formes = {
+      'Trapèze': tr('Trapèze', 'Trapezoid'),
+      'Forme en L': tr('Forme en L', 'L-shape'),
+    };
 
     return ToolScaffold(
-      title: 'Aires complexes',
+      title: tr('Aires complexes', 'Complex areas'),
       children: [
         ChoiceSegments(
-          options: const ['Trapèze', 'Forme en L'],
-          selected: _forme,
-          onChanged: (v) => setState(() => _forme = v),
+          options: formes.values.toList(),
+          selected: formes[_forme]!,
+          onChanged: (v) => setState(
+              () => _forme = formes.keys.firstWhere((k) => formes[k] == v)),
         ),
         const SizedBox(height: 12),
         Row(children: [
-          const Text('Unité : '),
+          Text('${tr('Unité', 'Unit')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['m', 'pi'],
-              selected: _m ? 'm' : 'pi',
+              options: ['m', pi],
+              selected: _m ? 'm' : pi,
               onChanged: (v) => setState(() => _m = v == 'm'),
             ),
           ),
@@ -1151,67 +1223,69 @@ class _AiresScreenState extends State<AiresScreen> {
             Expanded(
                 child: NumberField(
                     controller: _aCtrl,
-                    label: 'Base 1',
+                    label: tr('Base 1', 'Base 1'),
                     suffix: u,
                     onChanged: (_) => setState(() {}))),
             const SizedBox(width: 10),
             Expanded(
                 child: NumberField(
                     controller: _bCtrl,
-                    label: 'Base 2',
+                    label: tr('Base 2', 'Base 2'),
                     suffix: u,
                     onChanged: (_) => setState(() {}))),
           ]),
           const SizedBox(height: 12),
           NumberField(
               controller: _cCtrl,
-              label: 'Hauteur',
+              label: tr('Hauteur', 'Height'),
               suffix: u,
               onChanged: (_) => setState(() {})),
         ] else ...[
-          const _LigneTitre('Rectangle total'),
+          _LigneTitre(tr('Rectangle total', 'Full rectangle')),
           Row(children: [
             Expanded(
                 child: NumberField(
                     controller: _aCtrl,
-                    label: 'Longueur',
+                    label: tr('Longueur', 'Length'),
                     suffix: u,
                     onChanged: (_) => setState(() {}))),
             const SizedBox(width: 10),
             Expanded(
                 child: NumberField(
                     controller: _bCtrl,
-                    label: 'Largeur',
+                    label: tr('Largeur', 'Width'),
                     suffix: u,
                     onChanged: (_) => setState(() {}))),
           ]),
           const SizedBox(height: 12),
-          const _LigneTitre('Encoche à retrancher'),
+          _LigneTitre(tr('Encoche à retrancher', 'Notch to subtract')),
           Row(children: [
             Expanded(
                 child: NumberField(
                     controller: _cCtrl,
-                    label: 'Longueur',
+                    label: tr('Longueur', 'Length'),
                     suffix: u,
                     onChanged: (_) => setState(() {}))),
             const SizedBox(width: 10),
             Expanded(
                 child: NumberField(
                     controller: _dCtrl,
-                    label: 'Largeur',
+                    label: tr('Largeur', 'Width'),
                     suffix: u,
                     onChanged: (_) => setState(() {}))),
           ]),
         ],
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Aire',
+          label: tr('Aire', 'Area'),
           value: '${Fmt.number(aireM2, decimals: 2)} m²',
           color: AppColors.chantier,
           icon: Icons.crop_free,
           details: [
-            ResultLine('Pieds carrés', '${Fmt.number(aireFt2, decimals: 2)} pi²'),
-            ResultLine('Mètres carrés', '${Fmt.number(aireM2, decimals: 2)} m²',
+            ResultLine(tr('Pieds carrés', 'Square feet'),
+                '${Fmt.number(aireFt2, decimals: 2)} ${tr('pi', 'ft')}²'),
+            ResultLine(tr('Mètres carrés', 'Square meters'),
+                '${Fmt.number(aireM2, decimals: 2)} m²',
                 strong: true),
           ],
         ),
@@ -1263,26 +1337,29 @@ class _ScellantScreenState extends State<ScellantScreen> {
     final rend = parseNum(_rendCtrl.text) ?? 12;
     final longM = _metres ? long : long * 0.3048;
     final tubes = rend > 0 ? (longM / rend).ceil() : 0;
+    final String pi = tr('pi', 'ft');
 
     return ToolScaffold(
-      title: 'Scellant',
+      title: tr('Scellant', 'Sealant'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Nombre de tubes de scellant selon la longueur de joint. Un tube '
-              'de 300 mL fait environ 12 m pour un joint de 6 mm (varie selon '
-              'la taille du joint).',
+                  'de 300 mL fait environ 12 m pour un joint de 6 mm (varie '
+                  'selon la taille du joint).',
+              'Number of sealant tubes from the joint length. A 300 mL tube '
+                  'covers about 12 m for a 6 mm joint (varies with joint size).'),
           icon: Icons.water_drop,
           color: AppColors.materiaux,
         ),
         const SizedBox(height: 16),
         Row(children: [
-          const Text('Longueur en : '),
+          Text('${tr('Longueur en', 'Length in')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['m', 'pi'],
-              selected: _metres ? 'm' : 'pi',
+              options: ['m', pi],
+              selected: _metres ? 'm' : pi,
               onChanged: (v) => setState(() => _metres = v == 'm'),
             ),
           ),
@@ -1290,25 +1367,27 @@ class _ScellantScreenState extends State<ScellantScreen> {
         const SizedBox(height: 14),
         NumberField(
             controller: _longCtrl,
-            label: 'Longueur de joint',
-            suffix: _metres ? 'm' : 'pi',
+            label: tr('Longueur de joint', 'Joint length'),
+            suffix: _metres ? 'm' : pi,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
         NumberField(
             controller: _rendCtrl,
-            label: 'Rendement d\'un tube',
+            label: tr('Rendement d\'un tube', 'Yield per tube'),
             suffix: 'm/tube',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Tubes nécessaires',
+          label: tr('Tubes nécessaires', 'Tubes needed'),
           value: '$tubes tubes',
           color: AppColors.materiaux,
           icon: Icons.water_drop,
           details: [
-            ResultLine('Longueur', '${Fmt.number(longM, decimals: 1)} m'),
-            ResultLine('Rendement', '${Fmt.trim(rend)} m/tube'),
-            ResultLine('Tubes (300 mL)', '$tubes', strong: true),
+            ResultLine(tr('Longueur', 'Length'),
+                '${Fmt.number(longM, decimals: 1)} m'),
+            ResultLine(tr('Rendement', 'Yield'), '${Fmt.trim(rend)} m/tube'),
+            ResultLine(tr('Tubes (300 mL)', 'Tubes (300 mL)'), '$tubes',
+                strong: true),
           ],
         ),
       ],
@@ -1359,17 +1438,20 @@ class _FractionsAvanceesScreenState extends State<FractionsAvanceesScreen> {
     final res = _op == '+' ? a + b : a - b;
 
     return ToolScaffold(
-      title: 'Fractions avancées',
+      title: tr('Fractions avancées', 'Advanced fractions'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Additionne ou soustrais deux mesures en pieds, pouces et '
-              'fraction (au 1/16).',
+                  'fraction (au 1/16).',
+              'Add or subtract two measures in feet, inches and fraction (to '
+                  '1/16).'),
           icon: Icons.calculate,
           color: AppColors.chantier,
         ),
         const SizedBox(height: 16),
-        _mesureInput('Mesure A', _piA, _poA, _fA, (v) => setState(() => _fA = v)),
+        _mesureInput(tr('Mesure A', 'Measure A'), _piA, _poA, _fA,
+            (v) => setState(() => _fA = v)),
         const SizedBox(height: 12),
         ChoiceSegments(
           options: const ['+', '−'],
@@ -1377,18 +1459,21 @@ class _FractionsAvanceesScreenState extends State<FractionsAvanceesScreen> {
           onChanged: (v) => setState(() => _op = v),
         ),
         const SizedBox(height: 12),
-        _mesureInput('Mesure B', _piB, _poB, _fB, (v) => setState(() => _fB = v)),
+        _mesureInput(tr('Mesure B', 'Measure B'), _piB, _poB, _fB,
+            (v) => setState(() => _fB = v)),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Résultat',
+          label: tr('Résultat', 'Result'),
           value: Fmt.inchesToFeetInches(res),
           color: AppColors.chantier,
           icon: Icons.functions,
           details: [
-            ResultLine('En pouces', '${Fmt.trim(res)} po'),
-            ResultLine('Fraction', Fmt.inchesToFraction(res)),
-            ResultLine('Millimètres',
-                '${Fmt.number(res * 25.4, decimals: 0)} mm', strong: true),
+            ResultLine(tr('En pouces', 'In inches'),
+                '${Fmt.trim(res)} ${tr('po', 'in')}'),
+            ResultLine(tr('Fraction', 'Fraction'), Fmt.inchesToFraction(res)),
+            ResultLine(tr('Millimètres', 'Millimeters'),
+                '${Fmt.number(res * 25.4, decimals: 0)} mm',
+                strong: true),
           ],
         ),
       ],
@@ -1403,29 +1488,31 @@ class _FractionsAvanceesScreenState extends State<FractionsAvanceesScreen> {
         Text(titre,
             style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color:
-                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7))),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7))),
         const SizedBox(height: 8),
         Row(children: [
           Expanded(
               child: NumberField(
                   controller: pi,
-                  label: 'Pieds',
-                  suffix: 'pi',
+                  label: tr('Pieds', 'Feet'),
+                  suffix: tr('pi', 'ft'),
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 8),
           Expanded(
               child: NumberField(
                   controller: po,
-                  label: 'Pouces',
-                  suffix: 'po',
+                  label: tr('Pouces', 'Inches'),
+                  suffix: tr('po', 'in'),
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 8),
           Expanded(
             child: DropdownButtonFormField<int>(
               initialValue: f,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Fract.'),
+              decoration: InputDecoration(labelText: tr('Fract.', 'Frac.')),
               items: [
                 for (int i = 0; i < _seiziemes.length; i++)
                   DropdownMenuItem(value: i, child: Text(_seiziemes[i])),
@@ -1461,7 +1548,7 @@ class _PenteConvScreenState extends State<PenteConvScreen> {
   @override
   Widget build(BuildContext context) {
     final v = parseNum(_ctrl.text) ?? 0;
-    double ratio; // montée pour 12 de course
+    double ratio;
     if (_mode == '%') {
       ratio = v / 100 * 12;
     } else if (_mode == '°') {
@@ -1473,11 +1560,12 @@ class _PenteConvScreenState extends State<PenteConvScreen> {
     final deg = math.atan(ratio / 12) * 180 / math.pi;
 
     return ToolScaffold(
-      title: 'Convertisseur de pente',
+      title: tr('Convertisseur de pente', 'Slope converter'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Convertis une pente entre « montée/12 », pourcentage et degrés.',
+              'Convert a slope between « rise/12 », percentage and degrees.'),
           icon: Icons.show_chart,
           color: AppColors.chantier,
         ),
@@ -1491,23 +1579,26 @@ class _PenteConvScreenState extends State<PenteConvScreen> {
         NumberField(
           controller: _ctrl,
           label: _mode == 'x/12'
-              ? 'Montée (pour 12)'
+              ? tr('Montée (pour 12)', 'Rise (per 12)')
               : _mode == '%'
-                  ? 'Pourcentage'
-                  : 'Degrés',
+                  ? tr('Pourcentage', 'Percentage')
+                  : tr('Degrés', 'Degrees'),
           suffix: _mode == '%' ? '%' : (_mode == '°' ? '°' : '/12'),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Pente',
+          label: tr('Pente', 'Slope'),
           value: '${Fmt.trim(ratio, maxDecimals: 2)} / 12',
           color: AppColors.chantier,
           icon: Icons.show_chart,
           details: [
-            ResultLine('Pente (x/12)', '${Fmt.trim(ratio, maxDecimals: 2)} / 12'),
-            ResultLine('Pourcentage', Fmt.percent(pct)),
-            ResultLine('Degrés', '${Fmt.number(deg, decimals: 1)}°', strong: true),
+            ResultLine(tr('Pente (x/12)', 'Slope (x/12)'),
+                '${Fmt.trim(ratio, maxDecimals: 2)} / 12'),
+            ResultLine(tr('Pourcentage', 'Percentage'), Fmt.percent(pct)),
+            ResultLine(tr('Degrés', 'Degrees'),
+                '${Fmt.number(deg, decimals: 1)}°',
+                strong: true),
           ],
         ),
       ],
@@ -1540,22 +1631,26 @@ class _CoffrageScreenState extends State<CoffrageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final long = parseNum(_longCtrl.text) ?? 0; // pi
-    final haut = parseNum(_hautCtrl.text) ?? 0; // pi
+    final long = parseNum(_longCtrl.text) ?? 0;
+    final haut = parseNum(_hautCtrl.text) ?? 0;
     final perte = parseNum(_perteCtrl.text) ?? 0;
     final faceFt2 = long * haut;
     final feuilles = ((2 * faceFt2 / 32) * (1 + perte / 100)).ceil();
     final montantsFace = long > 0 ? (long * 12 / _entraxe).ceil() + 1 : 0;
     final montants = montantsFace * 2;
+    final String pi = tr('pi', 'ft');
 
     return ToolScaffold(
-      title: 'Coffrage de mur',
+      title: tr('Coffrage de mur', 'Wall formwork'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estimation pour un coffrage de mur : contreplaqué (2 faces, '
-              'feuilles 4×8) et montants aux deux faces. Ajoute lisses, '
-              'entretoises et attaches selon ta méthode.',
+                  'feuilles 4×8) et montants aux deux faces. Ajoute lisses, '
+                  'entretoises et attaches selon ta méthode.',
+              'Estimate for wall formwork: plywood (2 faces, 4×8 sheets) and '
+                  'studs on both faces. Add plates, whalers and ties per your '
+                  'method.'),
           icon: Icons.foundation,
           color: AppColors.materiaux,
         ),
@@ -1564,25 +1659,25 @@ class _CoffrageScreenState extends State<CoffrageScreen> {
           Expanded(
               child: NumberField(
                   controller: _longCtrl,
-                  label: 'Longueur',
-                  suffix: 'pi',
+                  label: tr('Longueur', 'Length'),
+                  suffix: pi,
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 10),
           Expanded(
               child: NumberField(
                   controller: _hautCtrl,
-                  label: 'Hauteur',
-                  suffix: 'pi',
+                  label: tr('Hauteur', 'Height'),
+                  suffix: pi,
                   onChanged: (_) => setState(() {}))),
         ]),
         const SizedBox(height: 12),
         NumberField(
             controller: _perteCtrl,
-            label: 'Perte',
+            label: tr('Perte', 'Waste'),
             suffix: '%',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 14),
-        Text('Entraxe des montants',
+        Text(tr('Entraxe des montants', 'Stud spacing'),
             style: TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context)
@@ -1597,15 +1692,19 @@ class _CoffrageScreenState extends State<CoffrageScreen> {
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Matériaux de coffrage',
-          value: '$feuilles feuilles',
+          label: tr('Matériaux de coffrage', 'Formwork materials'),
+          value: '$feuilles ${tr('feuilles', 'sheets')}',
           color: AppColors.materiaux,
           icon: Icons.foundation,
           details: [
-            ResultLine('Surface (1 face)',
-                '${Fmt.number(faceFt2, decimals: 0)} pi²'),
-            ResultLine('Feuilles 4×8 (2 faces)', '$feuilles', strong: true),
-            ResultLine('Montants ($_entraxe po, 2 faces)', '$montants'),
+            ResultLine(tr('Surface (1 face)', 'Area (1 face)'),
+                '${Fmt.number(faceFt2, decimals: 0)} ${tr('pi²', 'ft²')}'),
+            ResultLine(tr('Feuilles 4×8 (2 faces)', 'Sheets 4×8 (2 faces)'),
+                '$feuilles',
+                strong: true),
+            ResultLine(
+                '${tr('Montants', 'Studs')} ($_entraxe ${tr('po', 'in')}, 2 ${tr('faces', 'faces')})',
+                '$montants'),
           ],
         ),
       ],
