@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
@@ -12,54 +13,91 @@ import '../widgets/link_tile.dart';
 //  Source : Centre canadien d'hygiène et de sécurité au travail (CCHST).
 // ─────────────────────────────────────────────────────────────────────────
 class _Pictogramme {
-  const _Pictogramme(this.nom, this.icon, this.dangers);
-  final String nom;
+  const _Pictogramme(
+      this.nomFr, this.nomEn, this.icon, this.dangersFr, this.dangersEn);
+  final String nomFr, nomEn;
   final IconData icon;
-  final List<String> dangers;
+  final List<String> dangersFr, dangersEn;
+
+  String get nom => tr(nomFr, nomEn);
+  List<String> get dangers => estAnglais ? dangersEn : dangersFr;
 }
 
 const List<_Pictogramme> _pictos = [
-  _Pictogramme('Flamme', Icons.local_fire_department, [
+  _Pictogramme('Flamme', 'Flame', Icons.local_fire_department, [
     'Gaz, aérosols, liquides et solides inflammables',
     'Matières pyrophoriques et auto-échauffantes',
     'Matières autoréactives et peroxydes organiques',
     'Dégagent des gaz inflammables au contact de l\'eau',
+  ], [
+    'Flammable gases, aerosols, liquids and solids',
+    'Pyrophoric and self-heating substances',
+    'Self-reactive substances and organic peroxides',
+    'Emit flammable gases on contact with water',
   ]),
-  _Pictogramme('Flamme sur un cercle', Icons.whatshot, [
+  _Pictogramme('Flamme sur un cercle', 'Flame over circle', Icons.whatshot, [
     'Comburants : gaz, liquides et solides',
     'Peuvent intensifier un incendie ou provoquer une explosion',
+  ], [
+    'Oxidizers: gases, liquids and solids',
+    'Can intensify a fire or cause an explosion',
   ]),
-  _Pictogramme('Bouteille à gaz', Icons.propane_tank, [
+  _Pictogramme('Bouteille à gaz', 'Gas cylinder', Icons.propane_tank, [
     'Gaz sous pression (comprimés, liquéfiés, dissous)',
     'La bonbonne peut exploser si chauffée; gaz réfrigérés = froid extrême',
+  ], [
+    'Gases under pressure (compressed, liquefied, dissolved)',
+    'The cylinder can explode if heated; refrigerated gases = extreme cold',
   ]),
-  _Pictogramme('Corrosion', Icons.science, [
+  _Pictogramme('Corrosion', 'Corrosion', Icons.science, [
     'Corrosif pour les métaux',
     'Corrosion cutanée (brûlures de la peau)',
     'Lésions oculaires graves',
+  ], [
+    'Corrosive to metals',
+    'Skin corrosion (skin burns)',
+    'Serious eye damage',
   ]),
-  _Pictogramme('Bombe qui explose', Icons.bolt, [
+  _Pictogramme('Bombe qui explose', 'Exploding bomb', Icons.bolt, [
     'Explosifs',
     'Matières autoréactives (types A et B)',
     'Peroxydes organiques (types A et B)',
+  ], [
+    'Explosives',
+    'Self-reactive substances (types A and B)',
+    'Organic peroxides (types A and B)',
   ]),
-  _Pictogramme('Tête de mort', Icons.dangerous, [
+  _Pictogramme('Tête de mort', 'Skull and crossbones', Icons.dangerous, [
     'Toxicité aiguë (mortel ou toxique)',
     'Par voie orale, cutanée ou par inhalation',
+  ], [
+    'Acute toxicity (fatal or toxic)',
+    'By oral, dermal or inhalation route',
   ]),
-  _Pictogramme('Danger pour la santé', Icons.personal_injury, [
+  _Pictogramme('Danger pour la santé', 'Health hazard', Icons.personal_injury, [
     'Cancérogènes, mutagènes',
     'Toxiques pour la reproduction',
     'Sensibilisants respiratoires',
     'Toxicité pour un organe cible; danger par aspiration',
+  ], [
+    'Carcinogens, mutagens',
+    'Reproductive toxicity',
+    'Respiratory sensitizers',
+    'Target-organ toxicity; aspiration hazard',
   ]),
-  _Pictogramme('Point d\'exclamation', Icons.priority_high, [
+  _Pictogramme('Point d\'exclamation', 'Exclamation mark', Icons.priority_high, [
     'Irritation de la peau ou des yeux',
     'Sensibilisation cutanée',
     'Toxicité aiguë (nocif) — catégorie moindre',
+  ], [
+    'Skin or eye irritation',
+    'Skin sensitization',
+    'Acute toxicity (harmful) — lower category',
   ]),
-  _Pictogramme('Danger biologique', Icons.coronavirus, [
+  _Pictogramme('Danger biologique', 'Biohazard', Icons.coronavirus, [
     'Matières infectieuses présentant un danger biologique',
+  ], [
+    'Biohazardous infectious materials',
   ]),
 ];
 
@@ -69,29 +107,36 @@ class SimdutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ToolScaffold(
-      title: 'SIMDUT 2015',
+      title: tr('SIMDUT 2015', 'WHMIS 2015'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Les 9 pictogrammes du SIMDUT 2015. Chacun se présente dans un '
-              'losange à bordure rouge. La formation SIMDUT est obligatoire — '
-              'consulte toujours la fiche de données de sécurité (FDS) du produit.',
+                  'losange à bordure rouge. La formation SIMDUT est obligatoire '
+                  '— consulte toujours la fiche de données de sécurité (FDS) du '
+                  'produit.',
+              'The 9 WHMIS 2015 pictograms. Each appears in a red-bordered '
+                  'diamond. WHMIS training is mandatory — always check the '
+                  'product\'s safety data sheet (SDS).'),
           color: AppColors.infos,
           icon: Icons.shield_outlined,
         ),
         const SizedBox(height: 16),
         ..._pictos.map((p) => _PictoCard(picto: p)),
         const SizedBox(height: 8),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Source : Centre canadien d\'hygiène et de sécurité au travail '
-              '(CCHST). Référence pédagogique — ce n\'est pas la FDS officielle '
-              'd\'un produit.',
+                  '(CCHST). Référence pédagogique — ce n\'est pas la FDS '
+                  'officielle d\'un produit.',
+              'Source: Canadian Centre for Occupational Health and Safety '
+                  '(CCOHS). Educational reference — not a product\'s official '
+                  'SDS.'),
         ),
         const SizedBox(height: 10),
         LinkTile(
           icon: Icons.open_in_new,
-          title: 'CCHST — Pictogrammes du SIMDUT',
+          title: tr('CCHST — Pictogrammes du SIMDUT', 'CCOHS — WHMIS pictograms'),
           subtitle: 'cchst.ca',
           color: AppColors.infos,
           url: 'https://www.cchst.ca/oshanswers/chemicals/whmis_ghs/pictograms.html',
@@ -101,7 +146,6 @@ class SimdutScreen extends StatelessWidget {
   }
 }
 
-/// Petit losange rouge (bordure) façon SIMDUT, avec le symbole au centre.
 class _Losange extends StatelessWidget {
   const _Losange(this.icon);
   final IconData icon;
@@ -149,7 +193,8 @@ class _PictoCard extends StatelessWidget {
           leading: _Losange(picto.icon),
           title: Text(picto.nom,
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-          subtitle: Text('${picto.dangers.length} classe(s) de danger',
+          subtitle: Text(
+              '${picto.dangers.length} ${tr('classe(s) de danger', 'hazard class(es)')}',
               style: TextStyle(
                   fontSize: 12.5,
                   color: Theme.of(context)
@@ -193,19 +238,17 @@ class _PictoCard extends StatelessWidget {
 //  Source : Code de sécurité pour les travaux de construction, art. 5.2.1.
 // ─────────────────────────────────────────────────────────────────────────
 class _PalierTension {
-  const _PalierTension(this.tension, this.distance, this.max);
-  final String tension;
+  const _PalierTension(this.tensionFr, this.tensionEn, this.distance);
+  final String tensionFr, tensionEn;
   final String distance;
-
-  /// Borne haute de la plage en kV (pour le mini-outil). null = pas de max.
-  final double? max;
+  String get tension => tr(tensionFr, tensionEn);
 }
 
 const List<_PalierTension> _paliersLigne = [
-  _PalierTension('Moins de 125 kV', '3 m', 125),
-  _PalierTension('125 kV à 250 kV', '5 m', 250),
-  _PalierTension('250 kV à 550 kV', '8 m', 550),
-  _PalierTension('Plus de 550 kV', '12 m', null),
+  _PalierTension('Moins de 125 kV', 'Under 125 kV', '3 m'),
+  _PalierTension('125 kV à 250 kV', '125 kV to 250 kV', '5 m'),
+  _PalierTension('250 kV à 550 kV', '250 kV to 550 kV', '8 m'),
+  _PalierTension('Plus de 550 kV', 'Over 550 kV', '12 m'),
 ];
 
 class LignesElectriquesScreen extends StatefulWidget {
@@ -232,7 +275,6 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
       setState(() => _distance = null);
       return;
     }
-    // Le seuil « 125 à 250 » se lit « 125 000 à 250 000 V », borne haute incluse.
     String d = '12 m';
     if (kv < 125) {
       d = '3 m';
@@ -248,9 +290,8 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
   Widget build(BuildContext context) {
     final Color onSurf = Theme.of(context).colorScheme.onSurface;
     return ToolScaffold(
-      title: 'Lignes électriques',
+      title: tr('Lignes électriques', 'Power lines'),
       children: [
-        // Bannière rouge « danger de mort ».
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -266,14 +307,18 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Danger de mort',
-                        style: TextStyle(
+                    Text(tr('Danger de mort', 'Deadly hazard'),
+                        style: const TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 17,
                             color: AppColors.danger)),
                     Text(
-                        'Pas besoin de toucher : le courant peut sauter. Respecte '
-                        'la distance d\'approche minimale en tout temps.',
+                        tr(
+                            'Pas besoin de toucher : le courant peut sauter. '
+                                'Respecte la distance d\'approche minimale en '
+                                'tout temps.',
+                            'No need to touch: the current can arc. Keep the '
+                                'minimum approach distance at all times.'),
                         style: TextStyle(
                             fontSize: 12.5,
                             color: onSurf.withValues(alpha: 0.8))),
@@ -284,10 +329,10 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        const SectionTitle('Distances d\'approche minimales',
+        SectionTitle(
+            tr('Distances d\'approche minimales', 'Minimum approach distances'),
             color: AppColors.chantier),
         const SizedBox(height: 8),
-        // Tableau des paliers.
         Card(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -301,8 +346,8 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
                         indent: 16,
                         endIndent: 16),
                   Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 13),
                     child: Row(
                       children: [
                         Expanded(
@@ -325,52 +370,64 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        const SectionTitle('Vérifier une tension', color: AppColors.chantier),
+        SectionTitle(tr('Vérifier une tension', 'Check a voltage'),
+            color: AppColors.chantier),
         const SizedBox(height: 8),
         NumberField(
           controller: _kvCtrl,
-          label: 'Tension de la ligne',
+          label: tr('Tension de la ligne', 'Line voltage'),
           suffix: 'kV',
-          hint: 'ex. 25',
+          hint: tr('ex. 25', 'e.g. 25'),
           onChanged: (_) => _calculer(),
         ),
         const SizedBox(height: 6),
         Text(
-            'En cas de doute sur la tension, communique avec Hydro-Québec '
-            'avant de commencer.',
+            tr(
+                'En cas de doute sur la tension, communique avec Hydro-Québec '
+                    'avant de commencer.',
+                'If unsure of the voltage, contact Hydro-Québec before starting.'),
             style: TextStyle(
                 fontSize: 12, color: onSurf.withValues(alpha: 0.55))),
         if (_distance != null) ...[
           const SizedBox(height: 14),
           ResultCard(
-            label: 'Distance d\'approche minimale',
+            label: tr('Distance d\'approche minimale', 'Minimum approach distance'),
             value: _distance!,
             color: AppColors.danger,
             icon: Icons.social_distance,
           ),
         ],
         const SizedBox(height: 20),
-        const SectionTitle('Si tu ne peux pas respecter la distance',
+        SectionTitle(
+            tr('Si tu ne peux pas respecter la distance',
+                'If you can\'t keep the distance'),
             color: AppColors.chantier),
         const SizedBox(height: 8),
-        ..._mesures.map((m) => _PucePoint(texte: m, couleur: AppColors.chantier)),
+        ..._mesures().map((m) => _PucePoint(texte: m, couleur: AppColors.chantier)),
         const SizedBox(height: 16),
-        const SectionTitle('Contact accidentel avec une ligne',
+        SectionTitle(
+            tr('Contact accidentel avec une ligne',
+                'Accidental contact with a line'),
             color: AppColors.danger),
         const SizedBox(height: 8),
-        ..._contact.map((m) => _PucePoint(texte: m, couleur: AppColors.danger)),
+        ..._contact().map((m) => _PucePoint(texte: m, couleur: AppColors.danger)),
         const SizedBox(height: 16),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Distances tirées du Code de sécurité pour les travaux de '
-              'construction (CSTC), art. 5.2.1. Les consignes en cas de contact '
-              'sont des rappels généraux — suis toujours la procédure de ton '
-              'employeur et les directives de la CNESST.',
+                  'construction (CSTC), art. 5.2.1. Les consignes en cas de '
+                  'contact sont des rappels généraux — suis toujours la '
+                  'procédure de ton employeur et les directives de la CNESST.',
+              'Distances from the Safety Code for the construction industry '
+                  '(CSTC), s. 5.2.1. The contact instructions are general '
+                  'reminders — always follow your employer\'s procedure and '
+                  'CNESST directives.'),
         ),
         const SizedBox(height: 10),
         LinkTile(
           icon: Icons.open_in_new,
-          title: 'CNESST — Travaux près des lignes électriques',
+          title: tr('CNESST — Travaux près des lignes électriques',
+              'CNESST — Work near power lines'),
           subtitle: 'cnesst.gouv.qc.ca',
           color: AppColors.chantier,
           url:
@@ -381,24 +438,39 @@ class _LignesElectriquesScreenState extends State<LignesElectriquesScreen> {
   }
 }
 
-const List<String> _mesures = [
-  'Faire mettre la ligne hors tension par Hydro-Québec.',
-  'Établir une entente écrite avec Hydro-Québec sur les mesures de sécurité, '
-      'accessible au personnel.',
-  'Installer un dispositif limiteur de portée sur l\'équipement mobile ou '
-      'déployable pour respecter la distance.',
-  'Signaler les travaux à la CNESST (avis d\'ouverture de chantier) quand '
-      'requis.',
-];
+List<String> _mesures() => [
+      tr('Faire mettre la ligne hors tension par Hydro-Québec.',
+          'Have Hydro-Québec de-energize the line.'),
+      tr(
+          'Établir une entente écrite avec Hydro-Québec sur les mesures de '
+              'sécurité, accessible au personnel.',
+          'Set up a written agreement with Hydro-Québec on safety measures, '
+              'accessible to staff.'),
+      tr(
+          'Installer un dispositif limiteur de portée sur l\'équipement mobile '
+              'ou déployable pour respecter la distance.',
+          'Install a range-limiting device on mobile or deployable equipment to '
+              'keep the distance.'),
+      tr(
+          'Signaler les travaux à la CNESST (avis d\'ouverture de chantier) '
+              'quand requis.',
+          'Notify the CNESST of the work (notice of job opening) when required.'),
+    ];
 
-const List<String> _contact = [
-  'Reste sur la machine : ne descends pas si tu n\'es pas obligé.',
-  'Avertis tout le monde de ne pas s\'approcher ni de toucher l\'équipement.',
-  'Appelle le 911 et Hydro-Québec.',
-  'Si tu dois absolument sortir (ex. feu) : saute à pieds joints, sans toucher '
-      'la machine et le sol en même temps, puis éloigne-toi à petits pas '
-      'glissés, pieds collés.',
-];
+List<String> _contact() => [
+      tr('Reste sur la machine : ne descends pas si tu n\'es pas obligé.',
+          'Stay on the machine: don\'t get off unless you must.'),
+      tr('Avertis tout le monde de ne pas s\'approcher ni de toucher l\'équipement.',
+          'Warn everyone not to approach or touch the equipment.'),
+      tr('Appelle le 911 et Hydro-Québec.', 'Call 911 and Hydro-Québec.'),
+      tr(
+          'Si tu dois absolument sortir (ex. feu) : saute à pieds joints, sans '
+              'toucher la machine et le sol en même temps, puis éloigne-toi à '
+              'petits pas glissés, pieds collés.',
+          'If you absolutely must get out (e.g. fire): jump with feet together, '
+              'without touching the machine and the ground at the same time, '
+              'then shuffle away with feet together.'),
+    ];
 
 class _PucePoint extends StatelessWidget {
   const _PucePoint({required this.texte, required this.couleur});
@@ -449,13 +521,18 @@ class _CalculsElectriquesScreenState extends State<CalculsElectriquesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, String> modes = {
+      'Loi d\'Ohm': tr('Loi d\'Ohm', 'Ohm\'s law'),
+      'Chute de tension': tr('Chute de tension', 'Voltage drop'),
+    };
     return ToolScaffold(
-      title: 'Calculs électriques',
+      title: tr('Calculs électriques', 'Electrical calc'),
       children: [
         ChoiceSegments(
-          options: const ['Loi d\'Ohm', 'Chute de tension'],
-          selected: _mode,
-          onChanged: (v) => setState(() => _mode = v),
+          options: modes.values.toList(),
+          selected: modes[_mode]!,
+          onChanged: (v) => setState(
+              () => _mode = modes.keys.firstWhere((k) => modes[k] == v)),
         ),
         const SizedBox(height: 16),
         if (_mode == 'Loi d\'Ohm')
@@ -502,38 +579,57 @@ class _OhmSectionState extends State<_OhmSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const InfoBanner(
-          text:
-              'Entre deux valeurs, l\'app calcule les deux autres. '
-              'V = tension (volts), I = courant (ampères), R = résistance '
-              '(ohms), P = puissance (watts).',
+        InfoBanner(
+          text: tr(
+              'Entre deux valeurs, l\'app calcule les deux autres. V = tension '
+                  '(volts), I = courant (ampères), R = résistance (ohms), '
+                  'P = puissance (watts).',
+              'Enter two values, the app computes the other two. V = voltage '
+                  '(volts), I = current (amps), R = resistance (ohms), '
+                  'P = power (watts).'),
           color: AppColors.infos,
         ),
         const SizedBox(height: 14),
-        NumberField(controller: _v, label: 'Tension (V)', suffix: 'V',
+        NumberField(
+            controller: _v,
+            label: tr('Tension (V)', 'Voltage (V)'),
+            suffix: 'V',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        NumberField(controller: _i, label: 'Courant (I)', suffix: 'A',
+        NumberField(
+            controller: _i,
+            label: tr('Courant (I)', 'Current (I)'),
+            suffix: 'A',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        NumberField(controller: _r, label: 'Résistance (R)', suffix: 'Ω',
+        NumberField(
+            controller: _r,
+            label: tr('Résistance (R)', 'Resistance (R)'),
+            suffix: 'Ω',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        NumberField(controller: _p, label: 'Puissance (P)', suffix: 'W',
+        NumberField(
+            controller: _p,
+            label: tr('Puissance (P)', 'Power (P)'),
+            suffix: 'W',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 16),
         if (res != null)
           ResultCard(
-            label: 'Résultat',
+            label: tr('Résultat', 'Result'),
             value: '${Fmt.trim(res.v, maxDecimals: 2)} V',
             color: AppColors.charpente,
             icon: Icons.electric_bolt,
             details: [
-              ResultLine('Tension (V)', '${Fmt.trim(res.v, maxDecimals: 2)} V',
+              ResultLine(tr('Tension (V)', 'Voltage (V)'),
+                  '${Fmt.trim(res.v, maxDecimals: 2)} V',
                   strong: true),
-              ResultLine('Courant (I)', '${Fmt.trim(res.i, maxDecimals: 3)} A'),
-              ResultLine('Résistance (R)', '${Fmt.trim(res.r, maxDecimals: 3)} Ω'),
-              ResultLine('Puissance (P)', '${Fmt.trim(res.p, maxDecimals: 2)} W'),
+              ResultLine(tr('Courant (I)', 'Current (I)'),
+                  '${Fmt.trim(res.i, maxDecimals: 3)} A'),
+              ResultLine(tr('Résistance (R)', 'Resistance (R)'),
+                  '${Fmt.trim(res.r, maxDecimals: 3)} Ω'),
+              ResultLine(tr('Puissance (P)', 'Power (P)'),
+                  '${Fmt.trim(res.p, maxDecimals: 2)} W'),
             ],
           )
         else
@@ -543,9 +639,12 @@ class _OhmSectionState extends State<_OhmSection> {
                         (r != null ? 1 : 0) +
                         (p != null ? 1 : 0) <
                     2
-                ? 'Entre au moins deux valeurs.'
-                : 'Combinaison impossible (division par zéro?). Vérifie tes '
-                    'valeurs.',
+                ? tr('Entre au moins deux valeurs.', 'Enter at least two values.')
+                : tr(
+                    'Combinaison impossible (division par zéro?). Vérifie tes '
+                        'valeurs.',
+                    'Impossible combination (division by zero?). Check your '
+                        'values.'),
             icon: Icons.info_outline,
             color: AppColors.infos,
           ),
@@ -588,7 +687,6 @@ _OhmResultat? _resoudre({double? v, double? i, double? r, double? p}) {
     } else {
       return null;
     }
-    // Seuls I (branche R&P) et R (branche V&I) peuvent rester nuls ici.
     if (I == null || R == null) return null;
     if (!V.isFinite || !I.isFinite || !R.isFinite || !P.isFinite) return null;
     return _OhmResultat(V, I, R, P);
@@ -613,7 +711,6 @@ class _ChuteSectionState extends State<_ChuteSection> {
   String _materiau = 'Cuivre';
   String _phase = 'Monophasé';
 
-  // Résistivité en Ω·mm²/m à 20 °C.
   static const double _rhoCuivre = 0.0172;
   static const double _rhoAlu = 0.0282;
 
@@ -642,18 +739,29 @@ class _ChuteSectionState extends State<_ChuteSection> {
       if (vs != null && vs > 0) pct = vd / vs * 100;
     }
 
+    final Map<String, String> materiaux = {
+      'Cuivre': tr('Cuivre', 'Copper'),
+      'Aluminium': tr('Aluminium', 'Aluminum'),
+    };
+    final Map<String, String> phases = {
+      'Monophasé': tr('Monophasé', 'Single-phase'),
+      'Triphasé': tr('Triphasé', 'Three-phase'),
+    };
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estimation de la chute de tension d\'un conducteur selon sa '
-              'longueur, son courant et sa section. Longueur = distance simple '
-              '(aller) de la source à la charge.',
+                  'longueur, son courant et sa section. Longueur = distance '
+                  'simple (aller) de la source à la charge.',
+              'Estimate of a conductor\'s voltage drop from its length, current '
+                  'and size. Length = one-way distance from source to load.'),
           color: AppColors.infos,
         ),
         const SizedBox(height: 14),
-        Text('Matériau',
+        Text(tr('Matériau', 'Material'),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context)
@@ -662,12 +770,13 @@ class _ChuteSectionState extends State<_ChuteSection> {
                     .withValues(alpha: 0.75))),
         const SizedBox(height: 8),
         ChoiceSegments(
-          options: const ['Cuivre', 'Aluminium'],
-          selected: _materiau,
-          onChanged: (v) => setState(() => _materiau = v),
+          options: materiaux.values.toList(),
+          selected: materiaux[_materiau]!,
+          onChanged: (v) => setState(() =>
+              _materiau = materiaux.keys.firstWhere((k) => materiaux[k] == v)),
         ),
         const SizedBox(height: 12),
-        Text('Type de circuit',
+        Text(tr('Type de circuit', 'Circuit type'),
             style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: Theme.of(context)
@@ -676,58 +785,81 @@ class _ChuteSectionState extends State<_ChuteSection> {
                     .withValues(alpha: 0.75))),
         const SizedBox(height: 8),
         ChoiceSegments(
-          options: const ['Monophasé', 'Triphasé'],
-          selected: _phase,
-          onChanged: (v) => setState(() => _phase = v),
+          options: phases.values.toList(),
+          selected: phases[_phase]!,
+          onChanged: (v) => setState(
+              () => _phase = phases.keys.firstWhere((k) => phases[k] == v)),
         ),
         const SizedBox(height: 14),
-        NumberField(controller: _courant, label: 'Courant', suffix: 'A',
+        NumberField(
+            controller: _courant,
+            label: tr('Courant', 'Current'),
+            suffix: 'A',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        NumberField(controller: _longueur, label: 'Longueur (aller)', suffix: 'm',
+        NumberField(
+            controller: _longueur,
+            label: tr('Longueur (aller)', 'Length (one way)'),
+            suffix: 'm',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        NumberField(controller: _section, label: 'Section du conducteur',
-            suffix: 'mm²', hint: 'ex. 8,37 (n° 8 AWG)',
+        NumberField(
+            controller: _section,
+            label: tr('Section du conducteur', 'Conductor size'),
+            suffix: 'mm²',
+            hint: tr('ex. 8,37 (n° 8 AWG)', 'e.g. 8.37 (#8 AWG)'),
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
-        NumberField(controller: _source, label: 'Tension de source', suffix: 'V',
-            hint: '120, 240, 347, 600…', onChanged: (_) => setState(() {})),
+        NumberField(
+            controller: _source,
+            label: tr('Tension de source', 'Source voltage'),
+            suffix: 'V',
+            hint: '120, 240, 347, 600…',
+            onChanged: (_) => setState(() {})),
         const SizedBox(height: 16),
         if (vd != null)
           ResultCard(
-            label: 'Chute de tension',
+            label: tr('Chute de tension', 'Voltage drop'),
             value: '${Fmt.trim(vd, maxDecimals: 2)} V',
-            color: pct != null && pct > 3 ? AppColors.danger : AppColors.charpente,
+            color:
+                pct != null && pct > 3 ? AppColors.danger : AppColors.charpente,
             icon: Icons.trending_down,
             details: [
               if (pct != null)
-                ResultLine('Pourcentage', '${Fmt.trim(pct, maxDecimals: 2)} %',
+                ResultLine(tr('Pourcentage', 'Percentage'),
+                    '${Fmt.trim(pct, maxDecimals: 2)} %',
                     strong: true),
               if (vs != null && vs > 0)
-                ResultLine('Tension au bout',
+                ResultLine(tr('Tension au bout', 'Voltage at end'),
                     '${Fmt.trim(vs - vd, maxDecimals: 2)} V'),
-              ResultLine('Matériau', _materiau),
-              ResultLine('Circuit', _phase),
+              ResultLine(tr('Matériau', 'Material'), materiaux[_materiau]!),
+              ResultLine(tr('Circuit', 'Circuit'), phases[_phase]!),
             ],
           ),
         if (pct != null && pct > 3) ...[
           const SizedBox(height: 12),
-          const InfoBanner(
-            text:
+          InfoBanner(
+            text: tr(
                 'Plus de 3 % de chute : en général on vise un maximum de 3 % '
-                'sur une dérivation (5 % au total avec l\'artère). Envisage un '
-                'conducteur plus gros.',
+                    'sur une dérivation (5 % au total avec l\'artère). Envisage '
+                    'un conducteur plus gros.',
+                'Over 3% drop: usually aim for a maximum of 3% on a branch '
+                    '(5% total with the feeder). Consider a larger conductor.'),
             color: AppColors.warning,
           ),
         ],
         const SizedBox(height: 16),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estimation basée sur la résistance en courant continu à 20 °C '
-              '(cuivre 0,0172 · aluminium 0,0282 Ω·mm²/m). N\'inclut pas la '
-              'température réelle ni la réactance. Le choix final des '
-              'conducteurs doit suivre le Code canadien de l\'électricité (CCÉ).',
+                  '(cuivre 0,0172 · aluminium 0,0282 Ω·mm²/m). N\'inclut pas la '
+                  'température réelle ni la réactance. Le choix final des '
+                  'conducteurs doit suivre le Code canadien de l\'électricité '
+                  '(CCÉ).',
+              'Estimate based on DC resistance at 20 °C (copper 0.0172 · '
+                  'aluminum 0.0282 Ω·mm²/m). Does not include actual temperature '
+                  'or reactance. Final conductor sizing must follow the Canadian '
+                  'Electrical Code (CEC).'),
         ),
       ],
     );
