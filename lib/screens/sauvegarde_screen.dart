@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../data/backup.dart';
 import '../data/heures_store.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 
@@ -35,18 +36,21 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
     final bool? ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restaurer la sauvegarde ?'),
-        content: Text(
+        title: Text(tr('Restaurer la sauvegarde ?', 'Restore the backup?')),
+        content: Text(tr(
             'Cela remplacera tes $actuelles entrée(s) actuelle(s) par les '
-            '${res.entries.length} de la sauvegarde. Cette action ne peut pas '
-            'être annulée.'),
+                '${res.entries.length} de la sauvegarde. Cette action ne peut '
+                'pas être annulée.',
+            'This will replace your $actuelles current entr${actuelles == 1 ? 'y' : 'ies'} '
+                'with the ${res.entries.length} from the backup. This cannot be '
+                'undone.')),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Annuler')),
+              child: Text(tr('Annuler', 'Cancel'))),
           FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Restaurer')),
+              child: Text(tr('Restaurer', 'Restore'))),
         ],
       ),
     );
@@ -54,7 +58,8 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
     await HeuresStore.instance.remplacerTout(res.entries);
     _importCtrl.clear();
     messenger.showSnackBar(SnackBar(
-        content: Text('${res.entries.length} entrée(s) restaurée(s).')));
+        content: Text(
+            '${res.entries.length} ${tr('entrée(s) restaurée(s).', 'entr${res.entries.length == 1 ? 'y' : 'ies'} restored.')}')));
   }
 
   @override
@@ -64,18 +69,20 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
       builder: (context, _) {
         final int n = HeuresStore.instance.entries.length;
         return ToolScaffold(
-          title: 'Sauvegarde',
+          title: tr('Sauvegarde', 'Backup'),
           children: [
-            const InfoBanner(
-              text:
+            InfoBanner(
+              text: tr(
                   'Garde tes heures en sécurité. Exporte un fichier de '
-                  'sauvegarde (à envoyer par courriel ou à garder dans tes '
-                  'fichiers), puis restaure-le sur un autre téléphone.',
+                      'sauvegarde (à envoyer par courriel ou à garder dans tes '
+                      'fichiers), puis restaure-le sur un autre téléphone.',
+                  'Keep your hours safe. Export a backup file (email it or keep '
+                      'it in your files), then restore it on another phone.'),
               color: AppColors.infos,
               icon: Icons.backup,
             ),
             const SizedBox(height: 18),
-            const SectionTitle('Exporter', color: AppColors.paie),
+            SectionTitle(tr('Exporter', 'Export'), color: AppColors.paie),
             const SizedBox(height: 8),
             Card(
               child: Padding(
@@ -83,13 +90,17 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('$n journée(s) dans ta feuille de temps',
+                    Text(
+                        '$n ${tr('journée(s) dans ta feuille de temps', 'day(s) in your timesheet')}',
                         style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 15)),
                     const SizedBox(height: 4),
                     Text(
-                        'Le fichier .json contient toutes tes entrées. Garde-le '
-                        'précieusement.',
+                        tr(
+                            'Le fichier .json contient toutes tes entrées. '
+                                'Garde-le précieusement.',
+                            'The .json file holds all your entries. Keep it '
+                                'safe.'),
                         style: TextStyle(
                             fontSize: 12.5,
                             color: Theme.of(context)
@@ -106,7 +117,7 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
                                 : () => partagerBackup(
                                     context, HeuresStore.instance.entries),
                             icon: const Icon(Icons.ios_share, size: 18),
-                            label: const Text('Exporter'),
+                            label: Text(tr('Exporter', 'Export')),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -118,13 +129,13 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
                                       text: genererBackupJson(
                                           HeuresStore.instance.entries)));
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Sauvegarde copiée.')),
+                                    SnackBar(
+                                        content: Text(tr('Sauvegarde copiée.',
+                                            'Backup copied.'))),
                                   );
                                 },
                           icon: const Icon(Icons.copy, size: 20),
-                          tooltip: 'Copier',
+                          tooltip: tr('Copier', 'Copy'),
                         ),
                       ],
                     ),
@@ -133,14 +144,15 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const SectionTitle('Restaurer', color: AppColors.paie),
+            SectionTitle(tr('Restaurer', 'Restore'), color: AppColors.paie),
             const SizedBox(height: 8),
             TextField(
               controller: _importCtrl,
               maxLines: 5,
               minLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'Colle ici le contenu d\'une sauvegarde…',
+              decoration: InputDecoration(
+                hintText: tr('Colle ici le contenu d\'une sauvegarde…',
+                    'Paste a backup\'s contents here…'),
                 alignLabelWithHint: true,
               ),
             ),
@@ -148,14 +160,16 @@ class _SauvegardeScreenState extends State<SauvegardeScreen> {
             FilledButton.icon(
               onPressed: _restaurer,
               icon: const Icon(Icons.restore, size: 18),
-              label: const Text('Restaurer'),
+              label: Text(tr('Restaurer', 'Restore')),
             ),
             const SizedBox(height: 16),
-            const InfoBanner(
-              text:
+            InfoBanner(
+              text: tr(
                   'La restauration remplace la feuille de temps actuelle. '
-                  'Exporte d\'abord une sauvegarde si tu veux garder tes '
-                  'entrées actuelles.',
+                      'Exporte d\'abord une sauvegarde si tu veux garder tes '
+                      'entrées actuelles.',
+                  'Restoring replaces the current timesheet. Export a backup '
+                      'first if you want to keep your current entries.'),
               color: AppColors.warning,
             ),
           ],
