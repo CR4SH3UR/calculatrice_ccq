@@ -282,206 +282,312 @@ class CcqData {
 
   // ── Reste des données de référence ───────────────────────────────────
 
-  static const List<JourFerie> feries = [
-    JourFerie('Jour de l\'An', '1er janvier (et parfois le 2)'),
-    JourFerie('Vendredi saint ou lundi de Pâques', 'Selon la convention'),
-    JourFerie('Journée nationale des patriotes', 'Lundi avant le 25 mai'),
-    JourFerie('Fête nationale du Québec', '24 juin (Saint-Jean)'),
-    JourFerie('Fête du Canada', '1er juillet'),
-    JourFerie('Fête du travail', '1er lundi de septembre'),
-    JourFerie('Action de grâce', '2e lundi d\'octobre'),
-    JourFerie('Noël', '25 décembre (et parfois les jours autour)'),
+  static List<JourFerie> get feries => [
+    JourFerie(tr('Jour de l\'An', 'New Year\'s Day'),
+        tr('1er janvier (et parfois le 2)', 'January 1 (and sometimes the 2nd)')),
+    JourFerie(tr('Vendredi saint ou lundi de Pâques', 'Good Friday or Easter Monday'),
+        tr('Selon la convention', 'As per the agreement')),
+    JourFerie(tr('Journée nationale des patriotes', 'National Patriots\' Day'),
+        tr('Lundi avant le 25 mai', 'Monday before May 25')),
+    JourFerie(tr('Fête nationale du Québec', 'Quebec National Holiday'),
+        tr('24 juin (Saint-Jean)', 'June 24 (Saint-Jean)')),
+    JourFerie(tr('Fête du Canada', 'Canada Day'), tr('1er juillet', 'July 1')),
+    JourFerie(tr('Fête du travail', 'Labour Day'),
+        tr('1er lundi de septembre', '1st Monday of September')),
+    JourFerie(tr('Action de grâce', 'Thanksgiving'),
+        tr('2e lundi d\'octobre', '2nd Monday of October')),
+    JourFerie(tr('Noël', 'Christmas'),
+        tr('25 décembre (et parfois les jours autour)',
+            'December 25 (and sometimes surrounding days)')),
   ];
 
-  static const List<JourFerie> vacancesConstruction = [
-    JourFerie('Vacances d\'été',
-        'Généralement les 2 dernières semaines de juillet'),
-    JourFerie('Vacances d\'hiver',
-        'Généralement 2 semaines autour de la période des Fêtes'),
+  static List<JourFerie> get vacancesConstruction => [
+    JourFerie(tr('Vacances d\'été', 'Summer vacation'),
+        tr('Généralement les 2 dernières semaines de juillet',
+            'Usually the last 2 weeks of July')),
+    JourFerie(tr('Vacances d\'hiver', 'Winter vacation'),
+        tr('Généralement 2 semaines autour de la période des Fêtes',
+            'Usually 2 weeks around the holidays')),
   ];
 
-  static const List<Ressource> ressources = [
-    Ressource('Urgence', '911',
-        'Accident grave, incendie, blessé — appeler tout de suite.',
+  static List<Ressource> get ressources => [
+    Ressource(tr('Urgence', 'Emergency'), '911',
+        tr('Accident grave, incendie, blessé — appeler tout de suite.',
+            'Serious accident, fire, injury — call immediately.'),
         confirme: true, urgence: true),
     Ressource('Info-Santé / Info-Social', '811',
-        'Conseil santé (option 1) ou psychosocial (option 2), 24 h/24.',
+        tr('Conseil santé (option 1) ou psychosocial (option 2), 24 h/24.',
+            'Health advice (option 1) or psychosocial (option 2), 24/7.'),
         confirme: true),
     Ressource('CNESST', '1 844 838-0808',
-        'Santé et sécurité du travail, indemnisation, plaintes.',
+        tr('Santé et sécurité du travail, indemnisation, plaintes.',
+            'Occupational health & safety, compensation, complaints.'),
         confirme: true),
     Ressource('CCQ', '1 888 842-8282',
-        'Heures, avantages sociaux, carte de compétence, formation.',
+        tr('Heures, avantages sociaux, carte de compétence, formation.',
+            'Hours, benefits, competency card, training.'),
         confirme: true),
-    Ressource('Site web CCQ', 'ccq.org/salaire',
-        'Taux de salaire officiels par secteur, conventions, relevés.',
+    Ressource(tr('Site web CCQ', 'CCQ website'), 'ccq.org/salaire',
+        tr('Taux de salaire officiels par secteur, conventions, relevés.',
+            'Official wage rates by sector, agreements, statements.'),
         confirme: true, web: true),
   ];
 
-  static const List<ConseilSecurite> securite = [
+  static List<ConseilSecurite> get securite => [
     ConseilSecurite(
-      'Droit de refus',
+      tr('Droit de refus', 'Right to refuse'),
       Icons.pan_tool,
-      'Tu peux refuser un travail dangereux pour toi ou les autres. '
-          'Avise ton supérieur et le représentant en santé-sécurité. '
-          'C\'est un droit protégé — personne ne peut te punir pour ça.',
+      tr(
+          'Tu peux refuser un travail dangereux pour toi ou les autres. '
+              'Avise ton supérieur et le représentant en santé-sécurité. '
+              'C\'est un droit protégé — personne ne peut te punir pour ça.',
+          'You can refuse work that\'s dangerous to you or others. Tell your '
+              'supervisor and the health-and-safety rep. It\'s a protected '
+              'right — no one can punish you for it.'),
     ),
     ConseilSecurite(
-      'Protection contre les chutes',
+      tr('Protection contre les chutes', 'Fall protection'),
       Icons.height,
-      'Harnais, longe et point d\'ancrage dès qu\'il y a un risque de '
-          'chute (généralement 3 m et plus, ou près d\'un danger). '
-          'Vérifie ton équipement avant chaque usage.',
+      tr(
+          'Harnais, longe et point d\'ancrage dès qu\'il y a un risque de '
+              'chute (généralement 3 m et plus, ou près d\'un danger). '
+              'Vérifie ton équipement avant chaque usage.',
+          'Harness, lanyard and anchor point whenever there\'s a fall risk '
+              '(usually 3 m and up, or near a hazard). Check your gear before '
+              'each use.'),
     ),
     ConseilSecurite(
-      'Cadenassage',
+      tr('Cadenassage', 'Lockout'),
       Icons.lock,
-      'Avant d\'intervenir sur une machine : couper l\'énergie, cadenasser '
-          'et vérifier l\'arrêt (zéro énergie). Un cadenas, une clé, une '
-          'personne.',
+      tr(
+          'Avant d\'intervenir sur une machine : couper l\'énergie, cadenasser '
+              'et vérifier l\'arrêt (zéro énergie). Un cadenas, une clé, une '
+              'personne.',
+          'Before working on a machine: cut the energy, lock out and verify '
+              'zero energy. One lock, one key, one person.'),
     ),
     ConseilSecurite(
-      'Échafaudages',
+      tr('Échafaudages', 'Scaffolds'),
       Icons.stairs,
-      'Monté par une personne compétente, garde-corps en place, planchers '
-          'complets, bien appuyé et de niveau. Inspecter avant de monter.',
+      tr(
+          'Monté par une personne compétente, garde-corps en place, planchers '
+              'complets, bien appuyé et de niveau. Inspecter avant de monter.',
+          'Erected by a competent person, guardrails in place, full decking, '
+              'well supported and level. Inspect before climbing.'),
     ),
     ConseilSecurite(
-      'EPI de base',
+      tr('EPI de base', 'Basic PPE'),
       Icons.health_and_safety,
-      'Casque, bottes à cap, lunettes, gants et protection auditive selon '
-          'le risque. Le bon équipement, en bon état, porté comme il faut.',
+      tr(
+          'Casque, bottes à cap, lunettes, gants et protection auditive selon '
+              'le risque. Le bon équipement, en bon état, porté comme il faut.',
+          'Hard hat, safety boots, glasses, gloves and hearing protection per '
+              'the risk. The right gear, in good shape, worn properly.'),
     ),
     ConseilSecurite(
-      'SIMDUT / produits dangereux',
+      tr('SIMDUT / produits dangereux', 'WHMIS / hazardous products'),
       Icons.science,
-      'Connais les pictogrammes, lis les fiches de données de sécurité, '
-          'entrepose et manipule les produits comme prescrit.',
+      tr(
+          'Connais les pictogrammes, lis les fiches de données de sécurité, '
+              'entrepose et manipule les produits comme prescrit.',
+          'Know the pictograms, read the safety data sheets, store and handle '
+              'products as prescribed.'),
     ),
     ConseilSecurite(
-      'Espaces clos',
+      tr('Espaces clos', 'Confined spaces'),
       Icons.door_sliding,
-      'Jamais seul, jamais sans test d\'atmosphère et permis d\'entrée. '
-          'Prévoir surveillance et plan de sauvetage.',
+      tr(
+          'Jamais seul, jamais sans test d\'atmosphère et permis d\'entrée. '
+              'Prévoir surveillance et plan de sauvetage.',
+          'Never alone, never without an atmosphere test and entry permit. '
+              'Have an attendant and a rescue plan.'),
     ),
     ConseilSecurite(
-      'Excavation / tranchée',
+      tr('Excavation / tranchée', 'Excavation / trench'),
       Icons.terrain,
-      'Étançonnement ou pente sécuritaire dès 1,2 m. Garde les tas de '
-          'terre loin du bord. Ne descends jamais dans une tranchée non '
-          'protégée.',
+      tr(
+          'Étançonnement ou pente sécuritaire dès 1,2 m. Garde les tas de '
+              'terre loin du bord. Ne descends jamais dans une tranchée non '
+              'protégée.',
+          'Shoring or safe sloping from 1.2 m. Keep spoil piles away from the '
+              'edge. Never enter an unprotected trench.'),
     ),
     ConseilSecurite(
-      'Poussière de silice',
+      tr('Poussière de silice', 'Silica dust'),
       Icons.grain,
-      'Couper, meuler ou percer le béton, la brique ou la pierre dégage de '
-          'la silice cristalline (cancérigène). Travaille à l\'eau ou avec '
-          'aspiration à la source, et porte un appareil respiratoire adapté. '
-          'Jamais à sec sans protection.',
+      tr(
+          'Couper, meuler ou percer le béton, la brique ou la pierre dégage de '
+              'la silice cristalline (cancérigène). Travaille à l\'eau ou avec '
+              'aspiration à la source, et porte un appareil respiratoire '
+              'adapté. Jamais à sec sans protection.',
+          'Cutting, grinding or drilling concrete, brick or stone releases '
+              'crystalline silica (carcinogenic). Work wet or with '
+              'source capture, and wear a suitable respirator. Never dry '
+              'without protection.'),
     ),
     ConseilSecurite(
-      'Amiante',
+      tr('Amiante', 'Asbestos'),
       Icons.warning_amber,
-      'Présent dans bien des bâtiments avant 1990 (isolants, tuiles, plâtre). '
-          'Ne perce ni ne démolis sans avis : une évaluation est obligatoire. '
-          'Travaux d\'amiante = procédure, confinement et protection stricts.',
+      tr(
+          'Présent dans bien des bâtiments avant 1990 (isolants, tuiles, '
+              'plâtre). Ne perce ni ne démolis sans avis : une évaluation est '
+              'obligatoire. Travaux d\'amiante = procédure, confinement et '
+              'protection stricts.',
+          'Found in many pre-1990 buildings (insulation, tiles, plaster). '
+              'Don\'t drill or demolish without notice: an assessment is '
+              'mandatory. Asbestos work = strict procedure, containment and '
+              'protection.'),
     ),
     ConseilSecurite(
-      'Bruit et audition',
+      tr('Bruit et audition', 'Noise and hearing'),
       Icons.hearing,
-      'Au-delà du seuil réglementaire, porte des bouchons ou coquilles. '
-          'La perte auditive est permanente et indolore. Règle simple : si '
-          'tu dois crier pour être entendu à un bras de distance, c\'est trop '
-          'fort.',
+      tr(
+          'Au-delà du seuil réglementaire, porte des bouchons ou coquilles. '
+              'La perte auditive est permanente et indolore. Règle simple : si '
+              'tu dois crier pour être entendu à un bras de distance, c\'est '
+              'trop fort.',
+          'Above the regulatory limit, wear plugs or muffs. Hearing loss is '
+              'permanent and painless. Simple rule: if you must shout to be '
+              'heard an arm\'s length away, it\'s too loud.'),
     ),
     ConseilSecurite(
-      'Coup de chaleur',
+      tr('Coup de chaleur', 'Heat stroke'),
       Icons.wb_sunny,
-      'Par temps chaud : bois de l\'eau souvent (avant d\'avoir soif), '
-          'prends des pauses à l\'ombre, acclimate-toi progressivement. '
-          'Étourdissements, crampes, confusion, arrêt de sudation = urgence, '
-          'appelle le 911.',
+      tr(
+          'Par temps chaud : bois de l\'eau souvent (avant d\'avoir soif), '
+              'prends des pauses à l\'ombre, acclimate-toi progressivement. '
+              'Étourdissements, crampes, confusion, arrêt de sudation = '
+              'urgence, appelle le 911.',
+          'In hot weather: drink water often (before you\'re thirsty), take '
+              'shade breaks, acclimatize gradually. Dizziness, cramps, '
+              'confusion, stopping sweating = emergency, call 911.'),
     ),
     ConseilSecurite(
-      'Froid et hiver',
+      tr('Froid et hiver', 'Cold and winter'),
       Icons.ac_unit,
-      'Habille-toi en couches, garde extrémités et tête au chaud, surveille '
-          'engelures (peau blanche/engourdie) et hypothermie (frissons, '
-          'confusion). Attention aux surfaces glacées et au déneigement des '
-          'accès.',
+      tr(
+          'Habille-toi en couches, garde extrémités et tête au chaud, surveille '
+              'engelures (peau blanche/engourdie) et hypothermie (frissons, '
+              'confusion). Attention aux surfaces glacées et au déneigement des '
+              'accès.',
+          'Dress in layers, keep extremities and head warm, watch for '
+              'frostbite (white/numb skin) and hypothermia (shivering, '
+              'confusion). Beware icy surfaces and clearing access ways.'),
     ),
     ConseilSecurite(
-      'Lignes électriques',
+      tr('Lignes électriques', 'Power lines'),
       Icons.bolt,
-      'Garde les distances d\'approche des lignes aériennes (selon la '
-          'tension). Grues, échelles, échafaudages : repère les fils avant. '
-          'En cas de contact, reste sur l\'équipement et éloigne tout le '
-          'monde.',
+      tr(
+          'Garde les distances d\'approche des lignes aériennes (selon la '
+              'tension). Grues, échelles, échafaudages : repère les fils avant. '
+              'En cas de contact, reste sur l\'équipement et éloigne tout le '
+              'monde.',
+          'Keep the approach distances from overhead lines (by voltage). '
+              'Cranes, ladders, scaffolds: spot the wires first. On contact, '
+              'stay on the equipment and keep everyone away.'),
     ),
     ConseilSecurite(
-      'Levage et charges suspendues',
+      tr('Levage et charges suspendues', 'Lifting and suspended loads'),
       Icons.precision_manufacturing,
-      'Ne circule et ne travaille jamais sous une charge suspendue. Élingues '
-          'et crochets inspectés, capacité respectée, signaleur désigné. '
-          'Communique clairement avec le grutier.',
+      tr(
+          'Ne circule et ne travaille jamais sous une charge suspendue. '
+              'Élingues et crochets inspectés, capacité respectée, signaleur '
+              'désigné. Communique clairement avec le grutier.',
+          'Never walk or work under a suspended load. Inspected slings and '
+              'hooks, rated capacity respected, designated signaller. '
+              'Communicate clearly with the crane operator.'),
     ),
     ConseilSecurite(
-      'Signalisation et circulation',
+      tr('Signalisation et circulation', 'Signage and traffic'),
       Icons.traffic,
-      'Sur la route ou près des engins : dossard haute visibilité, zone '
-          'balisée, contact visuel avec les opérateurs. Attention aux angles '
-          'morts et aux marches arrière (signaleur au besoin).',
+      tr(
+          'Sur la route ou près des engins : dossard haute visibilité, zone '
+              'balisée, contact visuel avec les opérateurs. Attention aux '
+              'angles morts et aux marches arrière (signaleur au besoin).',
+          'On the road or near equipment: high-visibility vest, marked zone, '
+              'eye contact with operators. Watch for blind spots and reversing '
+              '(signaller as needed).'),
     ),
     ConseilSecurite(
-      'Manutention et dos',
+      tr('Manutention et dos', 'Material handling and back'),
       Icons.fitness_center,
-      'Plie les genoux, garde la charge près du corps, ne te tord pas. '
-          'Demande de l\'aide ou un moyen mécanique pour les charges lourdes. '
-          'Le dos, ça ne se répare pas comme un outil.',
+      tr(
+          'Plie les genoux, garde la charge près du corps, ne te tord pas. '
+              'Demande de l\'aide ou un moyen mécanique pour les charges '
+              'lourdes. Le dos, ça ne se répare pas comme un outil.',
+          'Bend your knees, keep the load close, don\'t twist. Ask for help or '
+              'a mechanical aid for heavy loads. Your back doesn\'t fix like a '
+              'tool.'),
     ),
     ConseilSecurite(
-      'Outils et machines',
+      tr('Outils et machines', 'Tools and machines'),
       Icons.handyman,
-      'Protecteurs en place, jamais retirés ni bloqués. Bon outil pour la '
-          'tâche, en bon état. Débranche avant d\'ajuster ou de nettoyer. '
-          'Lunettes et gants selon le risque.',
+      tr(
+          'Protecteurs en place, jamais retirés ni bloqués. Bon outil pour la '
+              'tâche, en bon état. Débranche avant d\'ajuster ou de nettoyer. '
+              'Lunettes et gants selon le risque.',
+          'Guards in place, never removed or blocked. Right tool for the task, '
+              'in good shape. Unplug before adjusting or cleaning. Glasses and '
+              'gloves per the risk.'),
     ),
     ConseilSecurite(
-      'Travail à chaud (soudage)',
+      tr('Travail à chaud (soudage)', 'Hot work (welding)'),
       Icons.local_fire_department,
-      'Permis de travail à chaud, extincteur à portée, surveillance des '
-          'étincelles et de la zone après coup. Ventilation contre les fumées '
-          'de soudage. Écran et lunettes contre le rayonnement.',
+      tr(
+          'Permis de travail à chaud, extincteur à portée, surveillance des '
+              'étincelles et de la zone après coup. Ventilation contre les '
+              'fumées de soudage. Écran et lunettes contre le rayonnement.',
+          'Hot-work permit, extinguisher within reach, watch sparks and the '
+              'area afterward. Ventilation against welding fumes. Screen and '
+              'glasses against radiation.'),
     ),
     ConseilSecurite(
-      'Premiers secours',
+      tr('Premiers secours', 'First aid'),
       Icons.medical_services,
-      'Sache où sont la trousse et le secouriste désigné du chantier. '
-          'En cas d\'accident : sécuriser les lieux, ne pas déplacer un '
-          'blessé grave sans raison, appeler le 911, donner l\'adresse '
-          'précise.',
+      tr(
+          'Sache où sont la trousse et le secouriste désigné du chantier. '
+              'En cas d\'accident : sécuriser les lieux, ne pas déplacer un '
+              'blessé grave sans raison, appeler le 911, donner l\'adresse '
+              'précise.',
+          'Know where the first-aid kit and the site\'s designated first-aider '
+              'are. On an accident: secure the area, don\'t move a seriously '
+              'injured person without reason, call 911, give the exact '
+              'address.'),
     ),
     ConseilSecurite(
-      'Plan d\'urgence',
+      tr('Plan d\'urgence', 'Emergency plan'),
       Icons.emergency_share,
-      'Connais les sorties, le point de rassemblement et les moyens d\'alerte '
-          'du chantier. En cas d\'évacuation : sortir vite, ne pas revenir, '
-          'se compter au point de rassemblement.',
+      tr(
+          'Connais les sorties, le point de rassemblement et les moyens '
+              'd\'alerte du chantier. En cas d\'évacuation : sortir vite, ne '
+              'pas revenir, se compter au point de rassemblement.',
+          'Know the exits, the muster point and the site\'s alarm systems. On '
+              'evacuation: get out fast, don\'t go back, get counted at the '
+              'muster point.'),
     ),
     ConseilSecurite(
-      'Nouveau ou jeune travailleur',
+      tr('Nouveau ou jeune travailleur', 'New or young worker'),
       Icons.school,
-      'Le risque est plus élevé les premiers mois. Pose des questions, '
-          'demande la formation et l\'accueil santé-sécurité, n\'exécute pas '
-          'une tâche que tu ne maîtrises pas. Aucune question n\'est niaiseuse.',
+      tr(
+          'Le risque est plus élevé les premiers mois. Pose des questions, '
+              'demande la formation et l\'accueil santé-sécurité, n\'exécute '
+              'pas une tâche que tu ne maîtrises pas. Aucune question n\'est '
+              'niaiseuse.',
+          'The risk is higher in the first months. Ask questions, request '
+              'training and the safety orientation, don\'t do a task you '
+              'haven\'t mastered. No question is a dumb one.'),
     ),
     ConseilSecurite(
-      'Fatigue, alcool et drogues',
+      tr('Fatigue, alcool et drogues', 'Fatigue, alcohol and drugs'),
       Icons.nightlight,
-      'La fatigue et les substances (incluant le cannabis et certains '
-          'médicaments) réduisent jugement et réflexes. Sur un chantier, '
-          'c\'est un danger pour toi et les autres. Signale si tu n\'es pas '
-          'en état.',
+      tr(
+          'La fatigue et les substances (incluant le cannabis et certains '
+              'médicaments) réduisent jugement et réflexes. Sur un chantier, '
+              'c\'est un danger pour toi et les autres. Signale si tu n\'es pas '
+              'en état.',
+          'Fatigue and substances (including cannabis and some medications) '
+              'reduce judgment and reflexes. On a site, that\'s a danger to you '
+              'and others. Speak up if you\'re not fit for work.'),
     ),
   ];
 }
@@ -503,6 +609,9 @@ class Metier {
 
   double baseCompagnon(Secteur s) => _base[s] ?? 0;
 
+  /// Nom du métier dans la langue active (repli sur le français si absent).
+  String get nomAffiche => tr(nom, metierEn[nom] ?? nom);
+
   /// Paliers du métier : apprentis puis compagnon (100 %).
   List<Palier> paliers() => [
         for (int i = 0; i < apprentiPct.length; i++)
@@ -519,6 +628,118 @@ class Palier {
   final String nom;
   final int pourcentage;
 }
+
+/// Noms anglais des métiers (clé = nom français exact). Une clé absente
+/// retombe sur le français — jamais d'erreur.
+const Map<String, String> metierEn = {
+  'Boutefeu': 'Blaster',
+  'Boutefeu classe 2': 'Blaster class 2',
+  'Briqueteur-maçon': 'Bricklayer-mason',
+  'Calorifugeur': 'Insulator',
+  'Carreleur': 'Tile setter',
+  'Charpentier-menuisier': 'Carpenter-joiner',
+  'Chaudronnier': 'Boilermaker',
+  'Chauffeur de chaudière classe IV': 'Boiler operator class IV',
+  'Chauffeur de chaudière à vapeur': 'Steam boiler operator',
+  'Cimentier-applicateur': 'Cement finisher-applicator',
+  'Coffrage à béton (Charp-men)': 'Concrete formwork (Carpenter)',
+  'Commis': 'Clerk',
+  'Conducteur de camions classe A': 'Truck driver class A',
+  'Conducteur de camions classe AA': 'Truck driver class AA',
+  'Conducteur de camions classe B': 'Truck driver class B',
+  'Conducteur de camions classe C': 'Truck driver class C',
+  'Couvreur': 'Roofer',
+  'Ferblantier': 'Sheet metal worker',
+  'Ferrailleur': 'Reinforcing ironworker (rodman)',
+  'Foreur': 'Driller',
+  'Foreur classe 2': 'Driller class 2',
+  'Frigoriste': 'Refrigeration mechanic',
+  'Gardien': 'Watchman',
+  'Grutier - classe A - 1er homme': 'Crane operator - class A - 1st operator',
+  'Grutier - classe A - 2e homme': 'Crane operator - class A - 2nd operator',
+  'Grutier - classe B': 'Crane operator - class B',
+  'Grutier-classe A-1er homme (viaduc)': 'Crane operator class A-1st (overpass)',
+  'Grutier-classe A-2e homme (viaduc)': 'Crane operator class A-2nd (overpass)',
+  'Grutier-classe B (viaduc)': 'Crane operator class B (overpass)',
+  'Homme service sur machinerie lourde': 'Heavy machinery service worker',
+  'Inst plateformes élév (mécan d\'asc)': 'Elevating platform installer (elevator mech.)',
+  'Inst. de systèmes de sécurité': 'Security systems installer',
+  'Inst. miroir, montres-comptoirs': 'Mirror/showcase installer',
+  'Jointoyeur (Peintre)': 'Taper (Painter)',
+  'Jointoyeur (Plâtrier)': 'Taper (Plasterer)',
+  'Magasinier': 'Storekeeper',
+  'Manoeuvre': 'Labourer',
+  'Manoeuvre (entr. & nett.)': 'Labourer (maint. & cleaning)',
+  'Manoeuvre (travaux de couverture)': 'Labourer (roofing work)',
+  'Manoeuvre canalisation souterraine': 'Underground piping labourer',
+  'Manoeuvre en décontamination': 'Decontamination labourer',
+  'Manoeuvre en maçonnerie': 'Masonry labourer',
+  'Manoeuvre en échafaudage': 'Scaffolding labourer',
+  'Manoeuvre nettoyage conduits d\'air': 'Air-duct cleaning labourer',
+  'Manoeuvre pipeline': 'Pipeline labourer',
+  'Manoeuvre sciage béton et asphalte': 'Concrete/asphalt sawing labourer',
+  'Manoeuvre spéc.(trav. couverture)': 'Spec. labourer (roofing work)',
+  'Manoeuvre spécialisé': 'Specialized labourer',
+  'Manoeuvre spécialisé carreleur': 'Specialized tile-setter labourer',
+  'Manœuvre (aqueduc et égouts) 1er poseur': 'Labourer (water & sewer) 1st layer',
+  'Manœuvre (aqueduc et égouts) 1er poseur (classe 2)': 'Labourer (water & sewer) 1st layer (class 2)',
+  'Manœuvre (aqueduc et égouts) 2ème poseur': 'Labourer (water & sewer) 2nd layer',
+  'Manœuvre (aqueduc et égouts) 2ème poseur (classe 2)': 'Labourer (water & sewer) 2nd layer (class 2)',
+  'Manœuvre à la préparation (top man)': 'Prep labourer (top man)',
+  'Manœuvre à la préparation (top man)  (classe 2)': 'Prep labourer (top man) (class 2)',
+  'Monteur-assembleur': 'Assembler-erector',
+  'Monteur-mécanicien (vitrier)': 'Mechanic-erector (glazier)',
+  'Monteur-mécanique porte et fenêtre': 'Door & window mechanic-erector',
+  'Mécanicien d\'ascenseur': 'Elevator mechanic',
+  'Mécanicien de chantier': 'Millwright',
+  'Mécanicien de machines lourdes': 'Heavy equipment mechanic',
+  'Mécanicien en protection-incendie': 'Fire-protection mechanic',
+  'Op. pompe béton mât dist. -42m': 'Concrete pump op. boom <42m',
+  'Op. pompe béton mât dist. 42m +': 'Concrete pump op. boom 42m+',
+  'Op. pompe béton mât dist. 50m +': 'Concrete pump op. boom 50m+',
+  'Op. pompe béton mât dist. 58m +': 'Concrete pump op. boom 58m+',
+  'Opér. appareils levage - classe A': 'Hoisting equipment op. - class A',
+  'Opér. appareils levage - classe B': 'Hoisting equipment op. - class B',
+  'Opér. pelles mécaniques - classe A': 'Power shovel op. - class A',
+  'Opér. pelles mécaniques - classe AA': 'Power shovel op. - class AA',
+  'Opér. pelles mécaniques - classe B': 'Power shovel op. - class B',
+  'Opérateur d\'usine fixe ou mobile': 'Fixed/mobile plant operator',
+  'Opérateur d\'épandeuses': 'Spreader operator',
+  'Opérateur de génératrice': 'Generator operator',
+  'Opérateur de niveleuses': 'Grader operator',
+  'Opérateur de pompe et compresseur': 'Pump & compressor operator',
+  'Opérateur de rouleaux - classe A': 'Roller operator - class A',
+  'Opérateur de rouleaux - classe B': 'Roller operator - class B',
+  'Opérateur de rétrocaveuses classe A': 'Backhoe operator class A',
+  'Opérateur de tracteurs - classe A': 'Tractor operator - class A',
+  'Opérateur de tracteurs - classe B': 'Tractor operator - class B',
+  'Opérateur de tracteurs classe AA': 'Tractor operator class AA',
+  'Opérateur pompe à béton 63m': 'Concrete pump op. 63m',
+  'Parqueteur-sableur (menuisier)': 'Floor layer-sander (carpenter)',
+  'Peintre': 'Painter',
+  'Plombier (Tuyauteur)': 'Plumber (Pipefitter)',
+  'Plâtrier': 'Plasterer',
+  'Pose de fondations profondes': 'Deep foundation work',
+  'Poseur d\'appareils de chauffage': 'Heating appliance installer',
+  'Poseur de portes de garage': 'Garage door installer',
+  'Poseur de revêtements souples': 'Resilient flooring installer',
+  'Poseur de systèmes intérieurs': 'Interior systems installer',
+  'Préposé aux instruments d\'arpentage': 'Surveying instrument attendant',
+  'Préposé aux pneus et au débosselage': 'Tire & dent-repair attendant',
+  'Rateleur d\'asphalte': 'Asphalt raker',
+  'Scaphandrier (plongeur prof)': 'Diver (professional)',
+  'Scaphandrier (plongeur prof) CL2': 'Diver (professional) CL2',
+  'Soudeur': 'Welder',
+  'Soudeur chaudronnier': 'Boilermaker welder',
+  'Soudeur de distribution': 'Distribution welder',
+  'Soudeur de machinerie lourde': 'Heavy machinery welder',
+  'Soudeur de pipeline': 'Pipeline welder',
+  'Soudeur en tuyauterie': 'Pipe welder',
+  'Soudeur monteur-assembleur': 'Assembler-erector welder',
+  'Spéc. branchement immeuble(gaz fit)': 'Building connection spec. (gas fitter)',
+  'Travailleur souterrain (mineur)': 'Underground worker (miner)',
+  'Électricien': 'Electrician',
+};
 
 class JourFerie {
   const JourFerie(this.nom, this.detail);
