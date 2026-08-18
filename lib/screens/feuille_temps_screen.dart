@@ -6,16 +6,20 @@ import '../data/app_prefs.dart';
 import '../data/ccq_data.dart';
 import '../data/feuille_pdf.dart';
 import '../data/heures_store.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
 import '../widgets/metier_picker.dart';
 
-const List<String> _joursCourts = [
-  'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'
-];
+/// Abréviation du jour de la semaine, dans la langue active (1 = lundi).
+String jourCourt(int weekday) {
+  const fr = ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'];
+  const en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return tr(fr[weekday - 1], en[weekday - 1]);
+}
 
-String _jourDate(DateTime d) => '${_joursCourts[d.weekday - 1]} ${Fmt.dateFr(d)}';
+String _jourDate(DateTime d) => '${jourCourt(d.weekday)} ${Fmt.dateFr(d)}';
 
 /// Totaux agrégés d'une liste d'entrées.
 class _Totaux {
@@ -86,26 +90,31 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
       parSem.putIfAbsent(debutSemaine(e.date), () => []).add(e);
     }
     final semaines = parSem.keys.toList()..sort((a, b) => b.compareTo(a));
-    final sb = StringBuffer('FEUILLE DE TEMPS — Calculatrice CCQ\n');
+    final sb = StringBuffer(
+        '${tr('FEUILLE DE TEMPS', 'TIMESHEET')} — Calculatrice CCQ\n');
     for (final s in semaines) {
       final list = parSem[s]!..sort((a, b) => a.date.compareTo(b.date));
       final t = _Totaux.from(list);
       final fin = s.add(const Duration(days: 6));
-      sb.writeln('\nSemaine du ${Fmt.dateFr(s)} au ${Fmt.dateFr(fin)}');
+      sb.writeln(
+          '\n${tr('Semaine du', 'Week of')} ${Fmt.dateFr(s)} ${tr('au', 'to')} ${Fmt.dateFr(fin)}');
       for (final e in list) {
         sb.writeln('  ${_jourDate(e.date)} — ${Fmt.trim(e.heures)} h '
             '@ ${Fmt.money(e.taux)}/h = ${Fmt.money(e.brut)}'
-            '${e.deplacement > 0 ? ' (+${Fmt.money(e.deplacement)} dépl.)' : ''}');
+            '${e.deplacement > 0 ? ' (+${Fmt.money(e.deplacement)} ${tr('dépl.', 'travel')})' : ''}');
       }
-      sb.writeln('  Total : ${Fmt.trim(t.heures)} h · ${Fmt.money(t.brut)} '
+      sb.writeln(
+          '  ${tr('Total', 'Total')} : ${Fmt.trim(t.heures)} h · ${Fmt.money(t.brut)} '
           '(+13 % = ${Fmt.money(t.avecConges)})');
     }
     final tt = _Totaux.from(entries);
-    sb.writeln('\nTOTAL : ${Fmt.trim(tt.heures)} h · brut ${Fmt.money(tt.brut)}'
-        '${tt.deplacement > 0 ? ' · déplacement ${Fmt.money(tt.deplacement)}' : ''}');
+    sb.writeln(
+        '\nTOTAL : ${Fmt.trim(tt.heures)} h · ${tr('brut', 'gross')} ${Fmt.money(tt.brut)}'
+        '${tt.deplacement > 0 ? ' · ${tr('déplacement', 'travel')} ${Fmt.money(tt.deplacement)}' : ''}');
     Clipboard.setData(ClipboardData(text: sb.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Feuille de temps copiée ✓')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content:
+            Text(tr('Feuille de temps copiée ✓', 'Timesheet copied ✓'))));
   }
 
   Future<void> _partagerPdf() async {
@@ -130,8 +139,9 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
       note: e.note,
     ));
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Journée dupliquée à aujourd\'hui ✓')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(tr(
+              'Journée dupliquée à aujourd\'hui ✓', 'Day duplicated to today ✓'))));
     }
   }
 
@@ -139,7 +149,7 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Feuille de temps'),
+        title: Text(tr('Feuille de temps', 'Timesheet')),
         actions: [
           ListenableBuilder(
             listenable: _store,
@@ -149,12 +159,12 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: 'Copier le texte',
+                    tooltip: tr('Copier le texte', 'Copy text'),
                     icon: const Icon(Icons.content_copy),
                     onPressed: vide ? null : _copier,
                   ),
                   IconButton(
-                    tooltip: 'Partager en PDF',
+                    tooltip: tr('Partager en PDF', 'Share as PDF'),
                     icon: const Icon(Icons.picture_as_pdf),
                     onPressed: vide ? null : _partagerPdf,
                   ),
@@ -169,7 +179,7 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
         backgroundColor: AppColors.paie,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('Ajouter'),
+        label: Text(tr('Ajouter', 'Add')),
       ),
       body: SafeArea(
         child: ListenableBuilder(
@@ -226,16 +236,20 @@ class _VideEtat extends StatelessWidget {
           children: [
             Icon(Icons.event_note, size: 64, color: c.withValues(alpha: 0.25)),
             const SizedBox(height: 16),
-            Text('Aucune heure notée',
+            Text(tr('Aucune heure notée', 'No hours logged'),
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: c.withValues(alpha: 0.8))),
             const SizedBox(height: 8),
             Text(
-              'Touche « Ajouter » pour noter ta journée : heures, taux, primes '
-              'et déplacement. Les totaux et la paie brute se calculent tout '
-              'seuls, par semaine.',
+              tr(
+                  'Touche « Ajouter » pour noter ta journée : heures, taux, '
+                      'primes et déplacement. Les totaux et la paie brute se '
+                      'calculent tout seuls, par semaine.',
+                  'Tap « Add » to log your day: hours, rate, premiums and '
+                      'travel. Totals and gross pay are computed automatically, '
+                      'by week.'),
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 13.5, height: 1.4, color: c.withValues(alpha: 0.55)),
@@ -259,26 +273,32 @@ class _Resume extends StatelessWidget {
     return Column(
       children: [
         ResultCard(
-          label: 'Cette semaine',
+          label: tr('Cette semaine', 'This week'),
           value: Fmt.money(t.brut),
           color: AppColors.paie,
           icon: Icons.calendar_view_week,
           details: [
-            ResultLine('Heures (norm. / 1,5 / 2)',
+            ResultLine(tr('Heures (norm. / 1,5 / 2)', 'Hours (reg. / 1.5 / 2)'),
                 '${Fmt.trim(t.hN)} / ${Fmt.trim(t.h15)} / ${Fmt.trim(t.h2)}'),
-            ResultLine('Total heures', '${Fmt.trim(t.heures)} h'),
-            if (t.prime > 0) ResultLine('Primes incluses', Fmt.money(t.prime)),
+            ResultLine(tr('Total heures', 'Total hours'),
+                '${Fmt.trim(t.heures)} h'),
+            if (t.prime > 0)
+              ResultLine(tr('Primes incluses', 'Premiums included'),
+                  Fmt.money(t.prime)),
             if (t.deplacement > 0)
-              ResultLine('Déplacement', Fmt.money(t.deplacement)),
-            ResultLine('Brut + congés 13 %', Fmt.money(t.avecConges),
+              ResultLine(tr('Déplacement', 'Travel'), Fmt.money(t.deplacement)),
+            ResultLine(tr('Brut + congés 13 %', 'Gross + 13% holiday'),
+                Fmt.money(t.avecConges),
                 strong: true),
             const ResultLine('———', ''),
-            ResultLine('Total heures notées', '${Fmt.trim(g.heures)} h'),
-            ResultLine('Brut total', Fmt.money(g.brut)),
+            ResultLine(tr('Total heures notées', 'Total logged hours'),
+                '${Fmt.trim(g.heures)} h'),
+            ResultLine(tr('Brut total', 'Total gross'), Fmt.money(g.brut)),
             if (g.deplacement > 0)
-              ResultLine('Déplacement total', Fmt.money(g.deplacement)),
+              ResultLine(tr('Déplacement total', 'Total travel'),
+                  Fmt.money(g.deplacement)),
             if (g.km > 0)
-              ResultLine('Km cumulés', '${Fmt.trim(g.km)} km'),
+              ResultLine(tr('Km cumulés', 'Total km'), '${Fmt.trim(g.km)} km'),
           ],
         ),
         const SizedBox(height: 12),
@@ -297,7 +317,7 @@ class _Objectif extends StatelessWidget {
     final res = await showDialog<double>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Objectif d\'heures par semaine'),
+        title: Text(tr('Objectif d\'heures par semaine', 'Weekly hours goal')),
         content: TextField(
           controller: ctrl,
           autofocus: true,
@@ -306,7 +326,8 @@ class _Objectif extends StatelessWidget {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(tr('Annuler', 'Cancel'))),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, parseNum(ctrl.text) ?? courant),
             child: const Text('OK'),
@@ -343,8 +364,8 @@ class _Objectif extends StatelessWidget {
                     Row(children: [
                       const Icon(Icons.flag, size: 17, color: AppColors.paie),
                       const SizedBox(width: 6),
-                      const Text('Objectif hebdo',
-                          style: TextStyle(fontWeight: FontWeight.w700)),
+                      Text(tr('Objectif hebdo', 'Weekly goal'),
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
                     ]),
                     Text('${Fmt.trim(heuresSemaine)} / ${Fmt.trim(obj)} h',
                         style: const TextStyle(
@@ -362,7 +383,8 @@ class _Objectif extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text('${(pct * 100).round()} % · touche pour modifier',
+                Text(
+                    '${(pct * 100).round()} % · ${tr('touche pour modifier', 'tap to edit')}',
                     style: TextStyle(
                         fontSize: 11.5, color: onSurf.withValues(alpha: 0.55))),
               ],
@@ -390,7 +412,7 @@ class _EnteteSemaine extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Semaine du ${Fmt.dateFr(debut)} au ${Fmt.dateFr(fin)}',
+              '${tr('Semaine du', 'Week of')} ${Fmt.dateFr(debut)} ${tr('au', 'to')} ${Fmt.dateFr(fin)}',
               style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
@@ -427,8 +449,9 @@ class _EntreeTile extends StatelessWidget {
       if (entry.hNormal > 0) '${Fmt.trim(entry.hNormal)}×1',
       if (entry.h15 > 0) '${Fmt.trim(entry.h15)}×1,5',
       if (entry.h2 > 0) '${Fmt.trim(entry.h2)}×2',
-      if (entry.prime > 0) '+${Fmt.money(entry.prime)} prime',
-      if (entry.deplacement > 0) '+${Fmt.money(entry.deplacement)} dépl.',
+      if (entry.prime > 0) '+${Fmt.money(entry.prime)} ${tr('prime', 'premium')}',
+      if (entry.deplacement > 0)
+        '+${Fmt.money(entry.deplacement)} ${tr('dépl.', 'travel')}',
     ].join('  ·  ');
     final ligne2 = [
       if (entry.metier.isNotEmpty) entry.metier,
@@ -485,7 +508,7 @@ class _EntreeTile extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      Text(_joursCourts[entry.date.weekday - 1],
+                      Text(jourCourt(entry.date.weekday),
                           style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -556,7 +579,7 @@ class _HeuresForm extends StatefulWidget {
 
 class _HeuresFormState extends State<_HeuresForm> {
   late DateTime _date;
-  String _mode = 'Mon taux';
+  bool _parMetier = false;
   Secteur _secteur = Secteur.institutionnelCommercial;
   Metier _metier = CcqData.metiers.firstWhere(
       (m) => m.nom == 'Charpentier-menuisier',
@@ -619,7 +642,7 @@ class _HeuresFormState extends State<_HeuresForm> {
   }
 
   double get _taux {
-    if (_mode == 'Mon taux') return parseNum(_tauxCtrl.text) ?? 0;
+    if (!_parMetier) return parseNum(_tauxCtrl.text) ?? 0;
     return CcqData.taux(_metier, _secteur, _metier.paliers()[_idx].pourcentage);
   }
 
@@ -645,9 +668,9 @@ class _HeuresFormState extends State<_HeuresForm> {
       prime: parseNum(_primeCtrl.text) ?? 0,
       km: parseNum(_kmCtrl.text) ?? 0,
       tauxKm: parseNum(_tauxKmCtrl.text) ?? 0,
-      metier: _mode == 'Par métier' ? _metier.nom : (widget.existant?.metier ?? ''),
+      metier: _parMetier ? _metier.nom : (widget.existant?.metier ?? ''),
       secteur:
-          _mode == 'Par métier' ? _secteur.court : (widget.existant?.secteur ?? ''),
+          _parMetier ? _secteur.court : (widget.existant?.secteur ?? ''),
       employeur: _employeurCtrl.text.trim(),
       note: _noteCtrl.text.trim(),
     );
@@ -666,44 +689,51 @@ class _HeuresFormState extends State<_HeuresForm> {
     final double brut = taux * hN + taux * 1.5 * h15 + taux * 2 * h2 + prime;
     final double dep = km * tauxKm;
 
+    final String monTaux = tr('Mon taux', 'My rate');
+    final String parMetier = tr('Par métier', 'By trade');
+
     return ListView(
       controller: PrimaryScrollController.maybeOf(context),
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
-        Text(widget.existant == null ? 'Noter des heures' : 'Modifier',
+        Text(
+            widget.existant == null
+                ? tr('Noter des heures', 'Log hours')
+                : tr('Modifier', 'Edit'),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
         const SizedBox(height: 14),
         InkWell(
           onTap: _choisirDate,
           borderRadius: BorderRadius.circular(14),
           child: InputDecorator(
-            decoration: const InputDecoration(
-              labelText: 'Date',
-              prefixIcon: Icon(Icons.calendar_today),
+            decoration: InputDecoration(
+              labelText: tr('Date', 'Date'),
+              prefixIcon: const Icon(Icons.calendar_today),
             ),
             child: Text(_jourDate(_date)),
           ),
         ),
         const SizedBox(height: 14),
         ChoiceSegments(
-          options: const ['Mon taux', 'Par métier'],
-          selected: _mode,
-          onChanged: (v) => setState(() => _mode = v),
+          options: [monTaux, parMetier],
+          selected: _parMetier ? parMetier : monTaux,
+          onChanged: (v) => setState(() => _parMetier = v == parMetier),
         ),
         const SizedBox(height: 12),
-        if (_mode == 'Mon taux')
+        if (!_parMetier)
           NumberField(
             controller: _tauxCtrl,
-            label: 'Taux horaire',
+            label: tr('Taux horaire', 'Hourly rate'),
             suffix: '\$/h',
-            hint: 'ex. 43,90',
+            hint: tr('ex. 43,90', 'e.g. 43.90'),
             onChanged: (_) => setState(() {}),
           )
         else ...[
           DropdownButtonFormField<Secteur>(
             initialValue: _secteur,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Convention (secteur)'),
+            decoration: InputDecoration(
+                labelText: tr('Convention (secteur)', 'Agreement (sector)')),
             items: Secteur.values
                 .map((s) =>
                     DropdownMenuItem(value: s, child: Text(s.nom)))
@@ -720,7 +750,7 @@ class _HeuresFormState extends State<_HeuresForm> {
           DropdownButtonFormField<int>(
             initialValue: _idx,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Palier'),
+            decoration: InputDecoration(labelText: tr('Palier', 'Level')),
             items: [
               for (int i = 0; i < _metier.paliers().length; i++)
                 DropdownMenuItem(
@@ -731,18 +761,18 @@ class _HeuresFormState extends State<_HeuresForm> {
             onChanged: (i) => setState(() => _palierIndex = i ?? 999),
           ),
           const SizedBox(height: 8),
-          Text('Taux : ${Fmt.money(taux)}/h',
+          Text('${tr('Taux', 'Rate')} : ${Fmt.money(taux)}/h',
               style: const TextStyle(
                   fontWeight: FontWeight.w700, color: AppColors.paie)),
         ],
         const SizedBox(height: 16),
-        const SectionTitle('Heures', color: AppColors.paie),
+        SectionTitle(tr('Heures', 'Hours'), color: AppColors.paie),
         Row(
           children: [
             Expanded(
                 child: NumberField(
                     controller: _nCtrl,
-                    label: 'Normales',
+                    label: tr('Normales', 'Regular'),
                     suffix: 'h',
                     onChanged: (_) => setState(() {}))),
             const SizedBox(width: 10),
@@ -764,43 +794,43 @@ class _HeuresFormState extends State<_HeuresForm> {
         const SizedBox(height: 12),
         NumberField(
             controller: _primeCtrl,
-            label: 'Prime (montant de la journée)',
+            label: tr('Prime (montant de la journée)', 'Premium (day amount)'),
             suffix: '\$',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 16),
-        const SectionTitle('Déplacement', color: AppColors.paie),
+        SectionTitle(tr('Déplacement', 'Travel'), color: AppColors.paie),
         Row(
           children: [
             Expanded(
                 child: NumberField(
                     controller: _kmCtrl,
-                    label: 'Distance',
+                    label: tr('Distance', 'Distance'),
                     suffix: 'km',
                     onChanged: (_) => setState(() {}))),
             const SizedBox(width: 10),
             Expanded(
                 child: NumberField(
                     controller: _tauxKmCtrl,
-                    label: 'Taux',
+                    label: tr('Taux', 'Rate'),
                     suffix: '\$/km',
                     onChanged: (_) => setState(() {}))),
           ],
         ),
         const SizedBox(height: 16),
-        const SectionTitle('Détails', color: AppColors.paie),
+        SectionTitle(tr('Détails', 'Details'), color: AppColors.paie),
         TextField(
           controller: _employeurCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Employeur',
-            prefixIcon: Icon(Icons.business),
+          decoration: InputDecoration(
+            labelText: tr('Employeur', 'Employer'),
+            prefixIcon: const Icon(Icons.business),
           ),
         ),
         const SizedBox(height: 12),
         TextField(
           controller: _noteCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Chantier / note',
-            prefixIcon: Icon(Icons.notes),
+          decoration: InputDecoration(
+            labelText: tr('Chantier / note', 'Jobsite / note'),
+            prefixIcon: const Icon(Icons.notes),
           ),
         ),
         const SizedBox(height: 16),
@@ -812,10 +842,12 @@ class _HeuresFormState extends State<_HeuresForm> {
           ),
           child: Column(
             children: [
-              _ligne('Brut de la journée', Fmt.money(brut), fort: true),
-              if (dep > 0) _ligne('Déplacement', Fmt.money(dep)),
+              _ligne(tr('Brut de la journée', 'Day gross'), Fmt.money(brut),
+                  fort: true),
               if (dep > 0)
-                _ligne('Total', Fmt.money(brut + dep), fort: true),
+                _ligne(tr('Déplacement', 'Travel'), Fmt.money(dep)),
+              if (dep > 0)
+                _ligne(tr('Total', 'Total'), Fmt.money(brut + dep), fort: true),
             ],
           ),
         ),
@@ -824,7 +856,7 @@ class _HeuresFormState extends State<_HeuresForm> {
           onPressed: _enregistrer,
           style: FilledButton.styleFrom(backgroundColor: AppColors.paie),
           icon: const Icon(Icons.check),
-          label: const Text('Enregistrer'),
+          label: Text(tr('Enregistrer', 'Save')),
         ),
       ],
     );

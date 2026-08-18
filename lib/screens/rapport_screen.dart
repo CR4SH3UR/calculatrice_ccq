@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/feuille_csv.dart';
 import '../data/heures_store.dart';
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
@@ -18,6 +19,12 @@ class RapportHeuresScreen extends StatefulWidget {
 class _RapportHeuresScreenState extends State<RapportHeuresScreen> {
   String _periode = 'Semaine';
   String _employeur = 'Tous';
+
+  static const List<String> _periodes = ['Semaine', 'Mois', '30 j', 'Tout'];
+  String _periodeLabel(String k) => tr(
+      k,
+      const {'Semaine': 'Week', 'Mois': 'Month', '30 j': '30 d', 'Tout': 'All'}[
+          k]!);
 
   bool _dansPeriode(DateTime d) {
     final DateTime now = DateTime.now();
@@ -70,9 +77,9 @@ class _RapportHeuresScreenState extends State<RapportHeuresScreen> {
         final double heures = hN + h15 + h2;
 
         return ToolScaffold(
-          title: 'Rapport d\'heures',
+          title: tr('Rapport d\'heures', 'Hours report'),
           children: [
-            Text('Période',
+            Text(tr('Période', 'Period'),
                 style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: Theme.of(context)
@@ -81,13 +88,14 @@ class _RapportHeuresScreenState extends State<RapportHeuresScreen> {
                         .withValues(alpha: 0.75))),
             const SizedBox(height: 8),
             ChoiceSegments(
-              options: const ['Semaine', 'Mois', '30 j', 'Tout'],
-              selected: _periode,
-              onChanged: (v) => setState(() => _periode = v),
+              options: _periodes.map(_periodeLabel).toList(),
+              selected: _periodeLabel(_periode),
+              onChanged: (v) => setState(() =>
+                  _periode = _periodes.firstWhere((k) => _periodeLabel(k) == v)),
             ),
             if (employeurs.isNotEmpty) ...[
               const SizedBox(height: 14),
-              Text('Employeur',
+              Text(tr('Employeur', 'Employer'),
                   style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: Theme.of(context)
@@ -102,7 +110,9 @@ class _RapportHeuresScreenState extends State<RapportHeuresScreen> {
                   prefixIcon: Icon(Icons.badge_outlined),
                 ),
                 items: ['Tous', ...employeurs]
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                    .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e == 'Tous' ? tr('Tous', 'All') : e)))
                     .toList(),
                 onChanged: (v) =>
                     v == null ? null : setState(() => _employeur = v),
@@ -110,27 +120,36 @@ class _RapportHeuresScreenState extends State<RapportHeuresScreen> {
             ],
             const SizedBox(height: 16),
             if (filtrees.isEmpty)
-              const InfoBanner(
-                text: 'Aucune heure pour cette sélection.',
+              InfoBanner(
+                text: tr('Aucune heure pour cette sélection.',
+                    'No hours for this selection.'),
                 color: AppColors.infos,
               )
             else ...[
               ResultCard(
-                label: 'Total de la période',
+                label: tr('Total de la période', 'Period total'),
                 value: Fmt.money(total),
                 color: AppColors.paie,
                 icon: Icons.summarize,
                 details: [
-                  ResultLine('Jours travaillés', '${filtrees.length}'),
-                  ResultLine('Heures totales', '${Fmt.trim(heures)} h',
+                  ResultLine(tr('Jours travaillés', 'Days worked'),
+                      '${filtrees.length}'),
+                  ResultLine(tr('Heures totales', 'Total hours'),
+                      '${Fmt.trim(heures)} h',
                       strong: true),
-                  if (h15 > 0) ResultLine('  dont 1,5×', '${Fmt.trim(h15)} h'),
-                  if (h2 > 0) ResultLine('  dont 2×', '${Fmt.trim(h2)} h'),
-                  ResultLine('Salaire brut', Fmt.money(brut)),
+                  if (h15 > 0)
+                    ResultLine('  ${tr('dont 1,5×', 'incl. 1.5×')}',
+                        '${Fmt.trim(h15)} h'),
+                  if (h2 > 0)
+                    ResultLine('  ${tr('dont 2×', 'incl. 2×')}',
+                        '${Fmt.trim(h2)} h'),
+                  ResultLine(tr('Salaire brut', 'Gross pay'), Fmt.money(brut)),
                   if (depl > 0)
-                    ResultLine('Déplacement (${Fmt.trim(km)} km)',
+                    ResultLine(
+                        '${tr('Déplacement', 'Travel')} (${Fmt.trim(km)} km)',
                         Fmt.money(depl)),
-                  ResultLine('Total à recevoir', Fmt.money(total),
+                  ResultLine(tr('Total à recevoir', 'Total to receive'),
+                      Fmt.money(total),
                       strong: true),
                 ],
               ),
@@ -141,21 +160,23 @@ class _RapportHeuresScreenState extends State<RapportHeuresScreen> {
                     child: FilledButton.tonalIcon(
                       onPressed: () => partagerCsvFeuille(context, filtrees),
                       icon: const Icon(Icons.ios_share, size: 18),
-                      label: const Text('Exporter CSV'),
+                      label: Text(tr('Exporter CSV', 'Export CSV')),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              const SectionTitle('Détail', color: AppColors.paie),
+              SectionTitle(tr('Détail', 'Details'), color: AppColors.paie),
               const SizedBox(height: 4),
               ...filtrees.map((e) => _LigneRapport(entry: e)),
             ],
             const SizedBox(height: 12),
-            const InfoBanner(
-              text:
+            InfoBanner(
+              text: tr(
                   'Le CSV s\'ouvre dans Excel ou Google Sheets. Montants bruts, '
-                  'avant impôts et retenues.',
+                      'avant impôts et retenues.',
+                  'The CSV opens in Excel or Google Sheets. Gross amounts, '
+                      'before taxes and deductions.'),
             ),
           ],
         );
