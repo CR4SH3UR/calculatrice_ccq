@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
 
 const double _m2PerFt2 = 0.09290304;
 const Color _c = AppColors.materiaux;
+
+String _pi2() => tr('pi²', 'ft²');
 
 // ─────────────────────────────────────────────────────────────────────────
 //  PEINTURE
@@ -37,26 +40,29 @@ class _PeintureScreenState extends State<PeintureScreen> {
     final rend = parseNum(_rendCtrl.text) ?? 10;
     final surfM2 = _m2 ? surf : surf * _m2PerFt2;
     final litres = rend > 0 ? surfM2 * couches / rend : 0.0;
-    final gallons = (litres / 3.78).ceil(); // gallon US 3,78 L
+    final gallons = (litres / 3.78).ceil();
+    final String pi2 = _pi2();
 
     return ToolScaffold(
-      title: 'Peinture',
+      title: tr('Peinture', 'Paint'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estime les litres de peinture selon la surface, le nombre de '
-              'couches et le rendement (souvent 8 à 12 m²/L).',
+                  'couches et le rendement (souvent 8 à 12 m²/L).',
+              'Estimate paint litres from area, number of coats and coverage '
+                  '(often 8 to 12 m²/L).'),
           icon: Icons.format_paint,
           color: _c,
         ),
         const SizedBox(height: 16),
         Row(children: [
-          const Text('Surface en : '),
+          Text('${tr('Surface en', 'Area in')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['m²', 'pi²'],
-              selected: _m2 ? 'm²' : 'pi²',
+              options: ['m²', pi2],
+              selected: _m2 ? 'm²' : pi2,
               onChanged: (v) => setState(() => _m2 = v == 'm²'),
             ),
           ),
@@ -64,36 +70,38 @@ class _PeintureScreenState extends State<PeintureScreen> {
         const SizedBox(height: 14),
         NumberField(
             controller: _surfCtrl,
-            label: 'Surface à peindre',
-            suffix: _m2 ? 'm²' : 'pi²',
+            label: tr('Surface à peindre', 'Area to paint'),
+            suffix: _m2 ? 'm²' : pi2,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
         Row(children: [
           Expanded(
               child: NumberField(
                   controller: _couchesCtrl,
-                  label: 'Couches',
+                  label: tr('Couches', 'Coats'),
                   onChanged: (_) => setState(() {}))),
           const SizedBox(width: 10),
           Expanded(
               child: NumberField(
                   controller: _rendCtrl,
-                  label: 'Rendement',
+                  label: tr('Rendement', 'Coverage'),
                   suffix: 'm²/L',
                   onChanged: (_) => setState(() {}))),
         ]),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Peinture nécessaire',
+          label: tr('Peinture nécessaire', 'Paint needed'),
           value: '${Fmt.number(litres, decimals: 1)} L',
           color: _c,
           icon: Icons.format_paint,
           details: [
-            ResultLine('Surface × couches',
+            ResultLine(tr('Surface × couches', 'Area × coats'),
                 '${Fmt.number(surfM2 * couches, decimals: 1)} m²'),
-            ResultLine('Litres', '${Fmt.number(litres, decimals: 2)} L',
+            ResultLine(tr('Litres', 'Litres'),
+                '${Fmt.number(litres, decimals: 2)} L',
                 strong: true),
-            ResultLine('Contenants de 3,78 L (gallon)', '$gallons'),
+            ResultLine(tr('Contenants de 3,78 L (gallon)',
+                'Cans of 3.78 L (gallon)'), '$gallons'),
           ],
         ),
       ],
@@ -104,6 +112,16 @@ class _PeintureScreenState extends State<PeintureScreen> {
 // ─────────────────────────────────────────────────────────────────────────
 //  BRIQUES / BLOCS
 // ─────────────────────────────────────────────────────────────────────────
+String _briqueLabel(String k) => tr(
+    k,
+    const {
+          'Brique modulaire': 'Modular brick',
+          'Bloc de béton 8"': '8" concrete block',
+          'Bloc de béton 12"': '12" concrete block',
+          'Pierre de parement': 'Veneer stone',
+        }[k] ??
+        k);
+
 class BriquesScreen extends StatefulWidget {
   const BriquesScreen({super.key});
   @override
@@ -111,7 +129,6 @@ class BriquesScreen extends StatefulWidget {
 }
 
 class _BriquesScreenState extends State<BriquesScreen> {
-  // Unités par m² (joint inclus, approximatif).
   static const Map<String, double> _parM2 = {
     'Brique modulaire': 48.5,
     'Bloc de béton 8"': 12.5,
@@ -137,15 +154,19 @@ class _BriquesScreenState extends State<BriquesScreen> {
     final surfM2 = _m2 ? surf : surf * _m2PerFt2;
     final parM2 = _parM2[_type]!;
     final nb = (surfM2 * parM2 * (1 + perte / 100)).ceil();
+    final String pi2 = _pi2();
 
     return ToolScaffold(
-      title: 'Briques & blocs',
+      title: tr('Briques & blocs', 'Bricks & blocks'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Estimation du nombre d\'unités selon la surface. Les quantités '
-              'par m² incluent le joint et sont approximatives — confirme '
-              'selon le format exact.',
+                  'par m² incluent le joint et sont approximatives — confirme '
+                  'selon le format exact.',
+              'Estimated number of units from the area. The per-m² quantities '
+                  'include the joint and are approximate — confirm with the '
+                  'exact format.'),
           icon: Icons.grid_view,
           color: _c,
         ),
@@ -153,21 +174,22 @@ class _BriquesScreenState extends State<BriquesScreen> {
         DropdownButtonFormField<String>(
           initialValue: _type,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Type'),
+          decoration: InputDecoration(labelText: tr('Type', 'Type')),
           items: _parM2.keys
               .map((k) => DropdownMenuItem(
-                  value: k, child: Text('$k  (${Fmt.trim(_parM2[k]!)}/m²)')))
+                  value: k,
+                  child: Text('${_briqueLabel(k)}  (${Fmt.trim(_parM2[k]!)}/m²)')))
               .toList(),
           onChanged: (v) => setState(() => _type = v ?? _type),
         ),
         const SizedBox(height: 12),
         Row(children: [
-          const Text('Surface en : '),
+          Text('${tr('Surface en', 'Area in')} : '),
           const SizedBox(width: 8),
           Expanded(
             child: ChoiceSegments(
-              options: const ['m²', 'pi²'],
-              selected: _m2 ? 'm²' : 'pi²',
+              options: ['m²', pi2],
+              selected: _m2 ? 'm²' : pi2,
               onChanged: (v) => setState(() => _m2 = v == 'm²'),
             ),
           ),
@@ -175,25 +197,28 @@ class _BriquesScreenState extends State<BriquesScreen> {
         const SizedBox(height: 14),
         NumberField(
             controller: _surfCtrl,
-            label: 'Surface du mur',
-            suffix: _m2 ? 'm²' : 'pi²',
+            label: tr('Surface du mur', 'Wall area'),
+            suffix: _m2 ? 'm²' : pi2,
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 12),
         NumberField(
             controller: _perteCtrl,
-            label: 'Perte / bris',
+            label: tr('Perte / bris', 'Waste / breakage'),
             suffix: '%',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Unités nécessaires',
+          label: tr('Unités nécessaires', 'Units needed'),
           value: '$nb',
           color: _c,
           icon: Icons.grid_view,
           details: [
-            ResultLine('Surface', '${Fmt.number(surfM2, decimals: 2)} m²'),
-            ResultLine('Densité', '${Fmt.trim(parM2)} / m²'),
-            ResultLine('Avec perte (${Fmt.trim(perte)} %)', '$nb', strong: true),
+            ResultLine(tr('Surface', 'Area'),
+                '${Fmt.number(surfM2, decimals: 2)} m²'),
+            ResultLine(tr('Densité', 'Density'), '${Fmt.trim(parM2)} / m²'),
+            ResultLine('${tr('Avec perte', 'With waste')} (${Fmt.trim(perte)} %)',
+                '$nb',
+                strong: true),
           ],
         ),
       ],
@@ -204,6 +229,18 @@ class _BriquesScreenState extends State<BriquesScreen> {
 // ─────────────────────────────────────────────────────────────────────────
 //  ISOLATION (valeur R)
 // ─────────────────────────────────────────────────────────────────────────
+String _matLabel(String k) => tr(
+    k,
+    const {
+          'Fibre de verre (matelas)': 'Fiberglass (batt)',
+          'Laine minérale': 'Mineral wool',
+          'Cellulose soufflée': 'Blown cellulose',
+          'Polystyrène EPS': 'EPS polystyrene',
+          'Polystyrène XPS': 'XPS polystyrene',
+          'Uréthane giclé': 'Spray urethane',
+        }[k] ??
+        k);
+
 class IsolationScreen extends StatefulWidget {
   const IsolationScreen({super.key});
   @override
@@ -211,7 +248,6 @@ class IsolationScreen extends StatefulWidget {
 }
 
 class _IsolationScreenState extends State<IsolationScreen> {
-  // Valeur R par pouce (approximative).
   static const Map<String, double> _rParPouce = {
     'Fibre de verre (matelas)': 3.2,
     'Laine minérale': 3.7,
@@ -239,31 +275,41 @@ class _IsolationScreenState extends State<IsolationScreen> {
     final rVise = parseNum(_rCtrl.text) ?? 0;
     final rTotal = ep * rpp;
     final epNec = rpp > 0 ? rVise / rpp : 0.0;
+    final String po = tr('po', 'in');
+
+    final Map<String, String> modes = {
+      'Épaisseur → R': tr('Épaisseur → R', 'Thickness → R'),
+      'R visé → épaisseur': tr('R visé → épaisseur', 'Target R → thickness'),
+    };
 
     return ToolScaffold(
-      title: 'Isolation (valeur R)',
+      title: tr('Isolation (valeur R)', 'Insulation (R-value)'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Valeur R selon l\'épaisseur et le matériau, ou l\'épaisseur '
-              'requise pour un R visé. Valeurs R/pouce approximatives.',
+                  'requise pour un R visé. Valeurs R/pouce approximatives.',
+              'R-value from thickness and material, or the thickness required '
+                  'for a target R. Approximate R/inch values.'),
           icon: Icons.ac_unit,
           color: _c,
         ),
         const SizedBox(height: 16),
         ChoiceSegments(
-          options: const ['Épaisseur → R', 'R visé → épaisseur'],
-          selected: _mode,
-          onChanged: (v) => setState(() => _mode = v),
+          options: modes.values.toList(),
+          selected: modes[_mode]!,
+          onChanged: (v) => setState(
+              () => _mode = modes.keys.firstWhere((k) => modes[k] == v)),
         ),
         const SizedBox(height: 14),
         DropdownButtonFormField<String>(
           initialValue: _mat,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Matériau'),
+          decoration: InputDecoration(labelText: tr('Matériau', 'Material')),
           items: _rParPouce.keys
               .map((k) => DropdownMenuItem(
-                  value: k, child: Text('$k  (R${Fmt.trim(_rParPouce[k]!)}/po)')))
+                  value: k,
+                  child: Text('${_matLabel(k)}  (R${Fmt.trim(_rParPouce[k]!)}/$po)')))
               .toList(),
           onChanged: (v) => setState(() => _mat = v ?? _mat),
         ),
@@ -271,41 +317,43 @@ class _IsolationScreenState extends State<IsolationScreen> {
         if (_mode == 'Épaisseur → R') ...[
           NumberField(
               controller: _epCtrl,
-              label: 'Épaisseur',
-              suffix: 'po',
+              label: tr('Épaisseur', 'Thickness'),
+              suffix: po,
               onChanged: (_) => setState(() {})),
           const SizedBox(height: 22),
           ResultCard(
-            label: 'Valeur R totale',
+            label: tr('Valeur R totale', 'Total R-value'),
             value: 'R-${Fmt.number(rTotal, decimals: 1)}',
             color: _c,
             icon: Icons.ac_unit,
             details: [
-              ResultLine('Matériau', '$_mat (R${Fmt.trim(rpp)}/po)'),
-              ResultLine('Épaisseur', '${Fmt.trim(ep)} po '
-                  '(${Fmt.number(ep * 25.4, decimals: 0)} mm)'),
-              ResultLine('R total', 'R-${Fmt.number(rTotal, decimals: 1)}',
+              ResultLine(tr('Matériau', 'Material'),
+                  '${_matLabel(_mat)} (R${Fmt.trim(rpp)}/$po)'),
+              ResultLine(tr('Épaisseur', 'Thickness'),
+                  '${Fmt.trim(ep)} $po (${Fmt.number(ep * 25.4, decimals: 0)} mm)'),
+              ResultLine(tr('R total', 'Total R'),
+                  'R-${Fmt.number(rTotal, decimals: 1)}',
                   strong: true),
             ],
           ),
         ] else ...[
           NumberField(
               controller: _rCtrl,
-              label: 'Valeur R visée',
-              hint: 'ex. 24',
+              label: tr('Valeur R visée', 'Target R-value'),
+              hint: tr('ex. 24', 'e.g. 24'),
               onChanged: (_) => setState(() {})),
           const SizedBox(height: 22),
           ResultCard(
-            label: 'Épaisseur requise',
-            value: '${Fmt.number(epNec, decimals: 1)} po',
+            label: tr('Épaisseur requise', 'Required thickness'),
+            value: '${Fmt.number(epNec, decimals: 1)} $po',
             color: _c,
             icon: Icons.straighten,
             details: [
-              ResultLine('Matériau', '$_mat (R${Fmt.trim(rpp)}/po)'),
-              ResultLine('R visé', 'R-${Fmt.trim(rVise)}'),
-              ResultLine('Épaisseur',
-                  '${Fmt.number(epNec, decimals: 2)} po '
-                      '(${Fmt.number(epNec * 25.4, decimals: 0)} mm)',
+              ResultLine(tr('Matériau', 'Material'),
+                  '${_matLabel(_mat)} (R${Fmt.trim(rpp)}/$po)'),
+              ResultLine(tr('R visé', 'Target R'), 'R-${Fmt.trim(rVise)}'),
+              ResultLine(tr('Épaisseur', 'Thickness'),
+                  '${Fmt.number(epNec, decimals: 2)} $po (${Fmt.number(epNec * 25.4, decimals: 0)} mm)',
                   strong: true),
             ],
           ),
@@ -356,12 +404,14 @@ class _CoutScreenState extends State<CoutScreen> {
     final total = sousTotal + taxes;
 
     return ToolScaffold(
-      title: 'Coût de matériaux',
+      title: tr('Coût de matériaux', 'Material cost'),
       children: [
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Additionne tes matériaux (quantité × prix). Ajoute autant de '
-              'lignes que nécessaire. Taxes du Québec (TPS+TVQ) ≈ 14,975 %.',
+                  'lignes que nécessaire. Taxes du Québec (TPS+TVQ) ≈ 14,975 %.',
+              'Add up your materials (quantity × price). Add as many lines as '
+                  'needed. Quebec taxes (GST+QST) ≈ 14.975%.'),
           icon: Icons.receipt_long,
           color: _c,
         ),
@@ -373,27 +423,28 @@ class _CoutScreenState extends State<CoutScreen> {
           child: TextButton.icon(
             onPressed: () => setState(() => _lignes.add(_LigneCout())),
             icon: const Icon(Icons.add, color: _c),
-            label: const Text('Ajouter une ligne',
-                style: TextStyle(color: _c, fontWeight: FontWeight.w700)),
+            label: Text(tr('Ajouter une ligne', 'Add a line'),
+                style: const TextStyle(color: _c, fontWeight: FontWeight.w700)),
           ),
         ),
         const SizedBox(height: 8),
         NumberField(
             controller: _taxesCtrl,
-            label: 'Taxes',
+            label: tr('Taxes', 'Taxes'),
             suffix: '%',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Coût total',
+          label: tr('Coût total', 'Total cost'),
           value: Fmt.money(total),
           color: _c,
           icon: Icons.receipt_long,
           details: [
-            ResultLine('Sous-total', Fmt.money(sousTotal)),
-            ResultLine('Taxes (${Fmt.trim(parseNum(_taxesCtrl.text) ?? 0)} %)',
+            ResultLine(tr('Sous-total', 'Subtotal'), Fmt.money(sousTotal)),
+            ResultLine(
+                '${tr('Taxes', 'Taxes')} (${Fmt.trim(parseNum(_taxesCtrl.text) ?? 0)} %)',
                 Fmt.money(taxes)),
-            ResultLine('Total', Fmt.money(total), strong: true),
+            ResultLine(tr('Total', 'Total'), Fmt.money(total), strong: true),
           ],
         ),
       ],
@@ -411,22 +462,24 @@ class _CoutScreenState extends State<CoutScreen> {
             flex: 3,
             child: TextField(
               controller: l.desc,
-              decoration: const InputDecoration(
-                  labelText: 'Article', isDense: true),
+              decoration: InputDecoration(
+                  labelText: tr('Article', 'Item'), isDense: true),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             flex: 2,
             child: NumberField(
-                controller: l.qte, label: 'Qté', onChanged: (_) => setState(() {})),
+                controller: l.qte,
+                label: tr('Qté', 'Qty'),
+                onChanged: (_) => setState(() {})),
           ),
           const SizedBox(width: 8),
           Expanded(
             flex: 2,
             child: NumberField(
                 controller: l.prix,
-                label: 'Prix',
+                label: tr('Prix', 'Price'),
                 suffix: '\$',
                 onChanged: (_) => setState(() {})),
           ),

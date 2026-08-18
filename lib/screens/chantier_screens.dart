@@ -2,9 +2,14 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
+
+/// Libellé d'un code d'unité : « po » → in, « pi » → ft en anglais.
+String _uLabel(String code) =>
+    tr(code, code == 'po' ? 'in' : (code == 'pi' ? 'ft' : code));
 
 // ─────────────────────────────────────────────────────────────────────────
 //  CONVERTISSEUR D'UNITÉS (longueur)
@@ -40,35 +45,40 @@ class _ConvertisseurScreenState extends State<ConvertisseurScreen> {
     final double mm = val * (_versMm[_unite] ?? 1);
 
     return ToolScaffold(
-      title: 'Convertisseur d\'unités',
+      title: tr('Convertisseur d\'unités', 'Unit converter'),
       children: [
         NumberField(
           controller: _ctrl,
-          label: 'Valeur à convertir',
+          label: tr('Valeur à convertir', 'Value to convert'),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: 14),
         ChoiceSegments(
-          options: const ['mm', 'cm', 'm', 'po', 'pi'],
-          selected: _unite,
-          onChanged: (v) => setState(() => _unite = v),
+          options: _versMm.keys.map(_uLabel).toList(),
+          selected: _uLabel(_unite),
+          onChanged: (v) => setState(
+              () => _unite = _versMm.keys.firstWhere((u) => _uLabel(u) == v)),
         ),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Équivalences',
-          value: '${Fmt.trim(val)} $_unite',
+          label: tr('Équivalences', 'Equivalents'),
+          value: '${Fmt.trim(val)} ${_uLabel(_unite)}',
           color: AppColors.chantier,
           icon: Icons.straighten,
           details: [
-            ResultLine('Millimètres', '${Fmt.number(mm, decimals: 1)} mm'),
-            ResultLine('Centimètres', '${Fmt.number(mm / 10, decimals: 2)} cm'),
-            ResultLine('Mètres', '${Fmt.number(mm / 1000, decimals: 3)} m'),
-            ResultLine('Pouces (déc.)',
-                '${Fmt.number(mm / Fmt.mmPerInch, decimals: 3)} po'),
-            ResultLine('Pouces (fract.)',
+            ResultLine(tr('Millimètres', 'Millimeters'),
+                '${Fmt.number(mm, decimals: 1)} mm'),
+            ResultLine(tr('Centimètres', 'Centimeters'),
+                '${Fmt.number(mm / 10, decimals: 2)} cm'),
+            ResultLine(
+                tr('Mètres', 'Meters'), '${Fmt.number(mm / 1000, decimals: 3)} m'),
+            ResultLine(tr('Pouces (déc.)', 'Inches (dec.)'),
+                '${Fmt.number(mm / Fmt.mmPerInch, decimals: 3)} ${tr('po', 'in')}'),
+            ResultLine(tr('Pouces (fract.)', 'Inches (frac.)'),
                 Fmt.inchesToFraction(mm / Fmt.mmPerInch)),
-            ResultLine('Pieds-pouces',
-                Fmt.inchesToFeetInches(mm / Fmt.mmPerInch), strong: true),
+            ResultLine(tr('Pieds-pouces', 'Feet-inches'),
+                Fmt.inchesToFeetInches(mm / Fmt.mmPerInch),
+                strong: true),
           ],
         ),
       ],
@@ -87,13 +97,11 @@ class FractionsScreen extends StatefulWidget {
 }
 
 class _FractionsScreenState extends State<FractionsScreen> {
-  // Sens « décimal → fraction »
   final _ctrl = TextEditingController();
   int _denom = 16;
-  // Sens « fraction → décimal »
   final _piCtrl = TextEditingController();
   final _poCtrl = TextEditingController();
-  int _seizieme = 0; // nombre de seizièmes (0 à 15)
+  int _seizieme = 0;
 
   String _mode = 'Fraction → déc.';
 
@@ -112,13 +120,18 @@ class _FractionsScreenState extends State<FractionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<String, String> modes = {
+      'Fraction → déc.': tr('Fraction → déc.', 'Fraction → dec.'),
+      'Décimal → fract.': tr('Décimal → fract.', 'Decimal → frac.'),
+    };
     return ToolScaffold(
-      title: 'Fractions de pouce',
+      title: tr('Fractions de pouce', 'Inch fractions'),
       children: [
         ChoiceSegments(
-          options: const ['Fraction → déc.', 'Décimal → fract.'],
-          selected: _mode,
-          onChanged: (v) => setState(() => _mode = v),
+          options: modes.values.toList(),
+          selected: modes[_mode]!,
+          onChanged: (v) => setState(
+              () => _mode = modes.keys.firstWhere((k) => modes[k] == v)),
         ),
         const SizedBox(height: 16),
         if (_mode == 'Fraction → déc.')
@@ -136,10 +149,12 @@ class _FractionsScreenState extends State<FractionsScreen> {
     final double mm = totalPo * Fmt.mmPerInch;
 
     return [
-      const InfoBanner(
-        text:
+      InfoBanner(
+        text: tr(
             'Compose une mesure en pieds, pouces et fraction (au 1/16) et '
-            'obtiens le décimal et le métrique.',
+                'obtiens le décimal et le métrique.',
+            'Build a measure in feet, inches and fraction (to 1/16) and get the '
+                'decimal and metric values.'),
         icon: Icons.straighten,
         color: AppColors.chantier,
       ),
@@ -149,8 +164,8 @@ class _FractionsScreenState extends State<FractionsScreen> {
           Expanded(
             child: NumberField(
               controller: _piCtrl,
-              label: 'Pieds',
-              suffix: 'pi',
+              label: tr('Pieds', 'Feet'),
+              suffix: tr('pi', 'ft'),
               onChanged: (_) => setState(() {}),
             ),
           ),
@@ -158,8 +173,8 @@ class _FractionsScreenState extends State<FractionsScreen> {
           Expanded(
             child: NumberField(
               controller: _poCtrl,
-              label: 'Pouces',
-              suffix: 'po',
+              label: tr('Pouces', 'Inches'),
+              suffix: tr('po', 'in'),
               onChanged: (_) => setState(() {}),
             ),
           ),
@@ -169,7 +184,8 @@ class _FractionsScreenState extends State<FractionsScreen> {
       DropdownButtonFormField<int>(
         initialValue: _seizieme,
         isExpanded: true,
-        decoration: const InputDecoration(labelText: 'Fraction de pouce'),
+        decoration:
+            InputDecoration(labelText: tr('Fraction de pouce', 'Inch fraction')),
         items: [
           for (int i = 0; i < _seiziemes.length; i++)
             DropdownMenuItem(value: i, child: Text(_seiziemes[i])),
@@ -178,16 +194,20 @@ class _FractionsScreenState extends State<FractionsScreen> {
       ),
       const SizedBox(height: 22),
       ResultCard(
-        label: 'Mesure décimale',
-        value: '${Fmt.trim(totalPo)} po',
+        label: tr('Mesure décimale', 'Decimal measure'),
+        value: '${Fmt.trim(totalPo)} ${tr('po', 'in')}',
         color: AppColors.chantier,
         icon: Icons.architecture,
         details: [
-          ResultLine('Pieds-pouces', Fmt.inchesToFeetInches(totalPo)),
-          ResultLine('Millimètres', '${Fmt.number(mm, decimals: 1)} mm',
+          ResultLine(tr('Pieds-pouces', 'Feet-inches'),
+              Fmt.inchesToFeetInches(totalPo)),
+          ResultLine(tr('Millimètres', 'Millimeters'),
+              '${Fmt.number(mm, decimals: 1)} mm',
               strong: true),
-          ResultLine('Centimètres', '${Fmt.number(mm / 10, decimals: 2)} cm'),
-          ResultLine('Mètres', '${Fmt.number(mm / 1000, decimals: 3)} m'),
+          ResultLine(tr('Centimètres', 'Centimeters'),
+              '${Fmt.number(mm / 10, decimals: 2)} cm'),
+          ResultLine(
+              tr('Mètres', 'Meters'), '${Fmt.number(mm / 1000, decimals: 3)} m'),
         ],
       ),
     ];
@@ -198,23 +218,25 @@ class _FractionsScreenState extends State<FractionsScreen> {
     final double mm = po * Fmt.mmPerInch;
 
     return [
-      const InfoBanner(
-        text:
+      InfoBanner(
+        text: tr(
             'Entre une mesure en pouces décimaux (ex. 3,375) et obtiens la '
-            'fraction à lire sur ton galon.',
+                'fraction à lire sur ton galon.',
+            'Enter a decimal-inch measure (e.g. 3.375) and get the fraction to '
+                'read on your tape.'),
         icon: Icons.straighten,
         color: AppColors.chantier,
       ),
       const SizedBox(height: 16),
       NumberField(
         controller: _ctrl,
-        label: 'Mesure',
-        suffix: 'po (décimal)',
-        hint: 'ex. 3,375',
+        label: tr('Mesure', 'Measure'),
+        suffix: tr('po (décimal)', 'in (decimal)'),
+        hint: tr('ex. 3,375', 'e.g. 3.375'),
         onChanged: (_) => setState(() {}),
       ),
       const SizedBox(height: 14),
-      Text('Précision de lecture',
+      Text(tr('Précision de lecture', 'Reading precision'),
           style: TextStyle(
               fontWeight: FontWeight.w600,
               color: Theme.of(context)
@@ -229,14 +251,17 @@ class _FractionsScreenState extends State<FractionsScreen> {
       ),
       const SizedBox(height: 22),
       ResultCard(
-        label: 'Sur le galon',
+        label: tr('Sur le galon', 'On the tape'),
         value: Fmt.inchesToFraction(po, denom: _denom),
         color: AppColors.chantier,
         icon: Icons.architecture,
         details: [
-          ResultLine('Pieds-pouces', Fmt.inchesToFeetInches(po, denom: _denom)),
-          ResultLine('Millimètres', '${Fmt.number(mm, decimals: 1)} mm'),
-          ResultLine('Centimètres', '${Fmt.number(mm / 10, decimals: 2)} cm'),
+          ResultLine(tr('Pieds-pouces', 'Feet-inches'),
+              Fmt.inchesToFeetInches(po, denom: _denom)),
+          ResultLine(tr('Millimètres', 'Millimeters'),
+              '${Fmt.number(mm, decimals: 1)} mm'),
+          ResultLine(tr('Centimètres', 'Centimeters'),
+              '${Fmt.number(mm / 10, decimals: 2)} cm'),
         ],
       ),
     ];
@@ -273,13 +298,13 @@ class _SurfaceScreenState extends State<SurfaceScreen> {
     final double a = parseNum(_aCtrl.text) ?? 0;
     final double b = parseNum(_bCtrl.text) ?? 0;
 
-    double aire; // dans l'unité choisie, au carré
+    double aire;
     switch (_forme) {
       case 'Triangle':
         aire = a * b / 2;
         break;
       case 'Cercle':
-        aire = math.pi * a * a; // a = rayon
+        aire = math.pi * a * a;
         break;
       default:
         aire = a * b;
@@ -289,27 +314,37 @@ class _SurfaceScreenState extends State<SurfaceScreen> {
     final double aireM2 = metrique ? aire : aire * m2PerFt2;
     final double aireFt2 = metrique ? aire / m2PerFt2 : aire;
 
-    final String labelA = _forme == 'Cercle' ? 'Rayon' : 'Longueur / base';
-    final String labelB = _forme == 'Triangle' ? 'Hauteur' : 'Largeur';
+    final String labelA =
+        _forme == 'Cercle' ? tr('Rayon', 'Radius') : tr('Longueur / base', 'Length / base');
+    final String labelB =
+        _forme == 'Triangle' ? tr('Hauteur', 'Height') : tr('Largeur', 'Width');
+
+    final Map<String, String> formes = {
+      'Rectangle': tr('Rectangle', 'Rectangle'),
+      'Triangle': tr('Triangle', 'Triangle'),
+      'Cercle': tr('Cercle', 'Circle'),
+    };
 
     return ToolScaffold(
-      title: 'Surface',
+      title: tr('Surface', 'Area'),
       children: [
         ChoiceSegments(
-          options: const ['Rectangle', 'Triangle', 'Cercle'],
-          selected: _forme,
-          onChanged: (v) => setState(() => _forme = v),
+          options: formes.values.toList(),
+          selected: formes[_forme]!,
+          onChanged: (v) => setState(
+              () => _forme = formes.keys.firstWhere((k) => formes[k] == v)),
         ),
         const SizedBox(height: 14),
         Row(
           children: [
-            const Text('Unité : '),
+            Text('${tr('Unité', 'Unit')} : '),
             const SizedBox(width: 8),
             Expanded(
               child: ChoiceSegments(
-                options: const ['m', 'pi'],
-                selected: _unite,
-                onChanged: (v) => setState(() => _unite = v),
+                options: ['m', _uLabel('pi')],
+                selected: _uLabel(_unite),
+                onChanged: (v) =>
+                    setState(() => _unite = v == 'm' ? 'm' : 'pi'),
               ),
             ),
           ],
@@ -318,7 +353,7 @@ class _SurfaceScreenState extends State<SurfaceScreen> {
         NumberField(
           controller: _aCtrl,
           label: labelA,
-          suffix: _unite,
+          suffix: _uLabel(_unite),
           onChanged: (_) => setState(() {}),
         ),
         if (_forme != 'Cercle') ...[
@@ -326,19 +361,21 @@ class _SurfaceScreenState extends State<SurfaceScreen> {
           NumberField(
             controller: _bCtrl,
             label: labelB,
-            suffix: _unite,
+            suffix: _uLabel(_unite),
             onChanged: (_) => setState(() {}),
           ),
         ],
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Aire',
+          label: tr('Aire', 'Area'),
           value: '${Fmt.number(aireM2, decimals: 2)} m²',
           color: AppColors.chantier,
           icon: Icons.crop_square,
           details: [
-            ResultLine('Pieds carrés', '${Fmt.number(aireFt2, decimals: 2)} pi²'),
-            ResultLine('Mètres carrés', '${Fmt.number(aireM2, decimals: 2)} m²',
+            ResultLine(tr('Pieds carrés', 'Square feet'),
+                '${Fmt.number(aireFt2, decimals: 2)} ${tr('pi', 'ft')}²'),
+            ResultLine(tr('Mètres carrés', 'Square meters'),
+                '${Fmt.number(aireM2, decimals: 2)} m²',
                 strong: true),
           ],
         ),
@@ -393,18 +430,18 @@ class _BetonScreenState extends State<BetonScreen> {
       final double w = parseNum(_wCtrl.text) ?? 0;
       final double ep = parseNum(_epCtrl.text) ?? 0;
       if (_metrique) {
-        return l * w * (ep / 100); // m × m × (cm→m)
+        return l * w * (ep / 100);
       }
-      final double ft3 = l * w * (ep / 12); // pi × pi × (po→pi)
+      final double ft3 = l * w * (ep / 12);
       return ft3 * m3PerFt3;
     } else {
       final double diam = parseNum(_diamCtrl.text) ?? 0;
       final double h = parseNum(_hCtrl.text) ?? 0;
       if (_metrique) {
-        final double r = (diam / 100) / 2; // cm→m
+        final double r = (diam / 100) / 2;
         return math.pi * r * r * h;
       }
-      final double rFt = (diam / 12) / 2; // po→pi
+      final double rFt = (diam / 12) / 2;
       final double ft3 = math.pi * rFt * rFt * h;
       return ft3 * m3PerFt3;
     }
@@ -418,32 +455,37 @@ class _BetonScreenState extends State<BetonScreen> {
     final double vol = _volumeM3();
     final double volAvecPerte = vol * (1 + perte / 100);
     final double verges = volAvecPerte / Fmt.m3PerCubicYard;
-    final int sacs = (rendement > 0)
-        ? (volAvecPerte / rendement).ceil()
-        : 0;
+    final int sacs = (rendement > 0) ? (volAvecPerte / rendement).ceil() : 0;
 
-    final String uBig = _metrique ? 'm' : 'pi';
-    final String uSmall = _metrique ? 'cm' : 'po';
+    final String uBig = _metrique ? 'm' : tr('pi', 'ft');
+    final String uSmall = _metrique ? 'cm' : tr('po', 'in');
+
+    final Map<String, String> formes = {
+      'Dalle': tr('Dalle', 'Slab'),
+      'Colonne': tr('Colonne', 'Column'),
+    };
+    final String metr = tr('Métrique', 'Metric');
+    final String imp = tr('Impérial', 'Imperial');
 
     return ToolScaffold(
-      title: 'Calcul de béton',
+      title: tr('Calcul de béton', 'Concrete calculation'),
       children: [
         ChoiceSegments(
-          options: const ['Dalle', 'Colonne'],
-          selected: _forme,
-          onChanged: (v) => setState(() => _forme = v),
+          options: formes.values.toList(),
+          selected: formes[_forme]!,
+          onChanged: (v) => setState(
+              () => _forme = formes.keys.firstWhere((k) => formes[k] == v)),
         ),
         const SizedBox(height: 14),
         Row(
           children: [
-            const Text('Unités : '),
+            Text('${tr('Unités', 'Units')} : '),
             const SizedBox(width: 8),
             Expanded(
               child: ChoiceSegments(
-                options: const ['Métrique', 'Impérial'],
-                selected: _metrique ? 'Métrique' : 'Impérial',
-                onChanged: (v) =>
-                    setState(() => _metrique = v == 'Métrique'),
+                options: [metr, imp],
+                selected: _metrique ? metr : imp,
+                onChanged: (v) => setState(() => _metrique = v == metr),
               ),
             ),
           ],
@@ -452,67 +494,74 @@ class _BetonScreenState extends State<BetonScreen> {
         if (_forme == 'Dalle') ...[
           NumberField(
               controller: _lCtrl,
-              label: 'Longueur',
+              label: tr('Longueur', 'Length'),
               suffix: uBig,
               onChanged: (_) => setState(() {})),
           const SizedBox(height: 12),
           NumberField(
               controller: _wCtrl,
-              label: 'Largeur',
+              label: tr('Largeur', 'Width'),
               suffix: uBig,
               onChanged: (_) => setState(() {})),
           const SizedBox(height: 12),
           NumberField(
               controller: _epCtrl,
-              label: 'Épaisseur',
+              label: tr('Épaisseur', 'Thickness'),
               suffix: uSmall,
               onChanged: (_) => setState(() {})),
         ] else ...[
           NumberField(
               controller: _diamCtrl,
-              label: 'Diamètre',
+              label: tr('Diamètre', 'Diameter'),
               suffix: uSmall,
               onChanged: (_) => setState(() {})),
           const SizedBox(height: 12),
           NumberField(
               controller: _hCtrl,
-              label: 'Hauteur',
+              label: tr('Hauteur', 'Height'),
               suffix: uBig,
               onChanged: (_) => setState(() {})),
         ],
         const SizedBox(height: 12),
         NumberField(
             controller: _perteCtrl,
-            label: 'Perte / gaspillage',
+            label: tr('Perte / gaspillage', 'Waste'),
             suffix: '%',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 22),
         ResultCard(
-          label: 'Volume de béton',
+          label: tr('Volume de béton', 'Concrete volume'),
           value: '${Fmt.number(volAvecPerte, decimals: 3)} m³',
           color: AppColors.chantier,
           icon: Icons.foundation,
           details: [
-            ResultLine('Volume net', '${Fmt.number(vol, decimals: 3)} m³'),
-            ResultLine('Avec perte (${Fmt.trim(perte)} %)',
+            ResultLine(tr('Volume net', 'Net volume'),
+                '${Fmt.number(vol, decimals: 3)} m³'),
+            ResultLine(
+                '${tr('Avec perte', 'With waste')} (${Fmt.trim(perte)} %)',
                 '${Fmt.number(volAvecPerte, decimals: 3)} m³'),
-            ResultLine('Verges cubes', '${Fmt.number(verges, decimals: 2)} vg³',
+            ResultLine(tr('Verges cubes', 'Cubic yards'),
+                '${Fmt.number(verges, decimals: 2)} ${tr('vg³', 'yd³')}',
                 strong: true),
-            ResultLine('Sacs de 30 kg (≈)', '$sacs sacs'),
+            ResultLine(tr('Sacs de 30 kg (≈)', '30 kg bags (≈)'),
+                '$sacs ${tr('sacs', 'bags')}'),
           ],
         ),
         const SizedBox(height: 14),
         NumberField(
             controller: _rendementCtrl,
-            label: 'Rendement d\'un sac (m³/sac)',
+            label: tr('Rendement d\'un sac (m³/sac)', 'Yield per bag (m³/bag)'),
             suffix: 'm³',
             onChanged: (_) => setState(() {})),
         const SizedBox(height: 10),
-        const InfoBanner(
-          text:
+        InfoBanner(
+          text: tr(
               'Le rendement d\'un sac varie selon le produit (≈ 0,0125 m³ pour '
-              'un sac de 30 kg de béton prémélangé). Pour un gros volume, '
-              'commande du béton livré (en verges cubes).',
+                  'un sac de 30 kg de béton prémélangé). Pour un gros volume, '
+                  'commande du béton livré (en verges cubes).',
+              'Bag yield varies by product (≈ 0.0125 m³ for a 30 kg bag of '
+                  'premixed concrete). For a large volume, order delivered '
+                  'concrete (in cubic yards).'),
           icon: Icons.local_shipping,
           color: AppColors.chantier,
         ),
