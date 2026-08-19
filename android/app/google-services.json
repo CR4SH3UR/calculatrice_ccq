@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1038075848555",
+    "project_id": "calculatriceccq",
+    "storage_bucket": "calculatriceccq.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1038075848555:android:c064ac6fd174d058650e2e",
+        "android_client_info": {
+          "package_name": "com.dickie.calculatrice_ccq"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCw0onpXpB9AkTnubuAgxVS6Kqsfmec7sA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

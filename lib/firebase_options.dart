@@ -34,22 +34,21 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: _placeholder,
-    appId: _placeholder,
-    messagingSenderId: _placeholder,
+    apiKey: 'AIzaSyC77zdWY8ZoGZ2dfmfY9TxGtW0XAHwjf0c',
+    appId: '1:1038075848555:web:91c2defb4ead17f5650e2e',
+    messagingSenderId: '1038075848555',
     projectId: 'calculatriceccq',
     authDomain: 'calculatriceccq.firebaseapp.com',
-    storageBucket: 'calculatriceccq.appspot.com',
+    storageBucket: 'calculatriceccq.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: _placeholder,
-    appId: _placeholder,
-    messagingSenderId: _placeholder,
+    apiKey: 'AIzaSyCw0onpXpB9AkTnubuAgxVS6Kqsfmec7sA',
+    appId: '1:1038075848555:android:c064ac6fd174d058650e2e',
+    messagingSenderId: '1038075848555',
     projectId: 'calculatriceccq',
-    storageBucket: 'calculatriceccq.appspot.com',
+    storageBucket: 'calculatriceccq.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: _placeholder,
     appId: _placeholder,
