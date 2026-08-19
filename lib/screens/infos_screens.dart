@@ -115,17 +115,30 @@ class _TauxMetiersScreenState extends State<TauxMetiersScreen> {
   }
 }
 
-class _MetierTile extends StatelessWidget {
+class _MetierTile extends StatefulWidget {
   const _MetierTile({required this.metier, required this.secteur});
   final Metier metier;
   final Secteur secteur;
 
   @override
+  State<_MetierTile> createState() => _MetierTileState();
+}
+
+class _MetierTileState extends State<_MetierTile> {
+  /// Palier choisi pour voir ses hausses (null = compagnon, le dernier).
+  int? _selPalier;
+
+  @override
   Widget build(BuildContext context) {
+    final Metier metier = widget.metier;
+    final Secteur secteur = widget.secteur;
     final double comp = CcqData.tauxCompagnon(metier, secteur);
     final List<Hausse> futures = CcqData.haussesFutures(secteur);
     final Color onSurf = Theme.of(context).colorScheme.onSurface;
-    final String libelleComp = metier.paliers().last.nom;
+    final paliers = metier.paliers();
+    final int selIdx = _selPalier ?? paliers.length - 1;
+    final sel = paliers[selIdx];
+    final String libelleComp = paliers.last.nom;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -148,18 +161,59 @@ class _MetierTile extends StatelessWidget {
                   fontWeight: FontWeight.w600, color: AppColors.infos)),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
           children: [
-            ...metier.paliers().map((p) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 5),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                  tr('Touche un palier pour voir ses prochaines hausses.',
+                      'Tap a step to see its upcoming increases.'),
+                  style: TextStyle(
+                      fontSize: 11.5,
+                      fontStyle: FontStyle.italic,
+                      color: onSurf.withValues(alpha: 0.55))),
+            ),
+            const SizedBox(height: 4),
+            ...paliers.asMap().entries.map((e) {
+              final int i = e.key;
+              final p = e.value;
+              final bool actif = i == selIdx;
+              return InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => setState(() => _selPalier = i),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: actif
+                        ? AppColors.infos.withValues(alpha: 0.10)
+                        : null,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${p.nom}  (${p.pourcentage} %)',
-                          style: TextStyle(color: onSurf.withValues(alpha: 0.75))),
+                      Icon(
+                          actif
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          size: 16,
+                          color: actif
+                              ? AppColors.infos
+                              : onSurf.withValues(alpha: 0.3)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text('${p.nom}  (${p.pourcentage} %)',
+                            style: TextStyle(
+                                color: onSurf
+                                    .withValues(alpha: actif ? 0.95 : 0.75),
+                                fontWeight:
+                                    actif ? FontWeight.w700 : FontWeight.w400)),
+                      ),
                       Text('${Fmt.money(comp * p.pourcentage / 100)}/h',
                           style: const TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
-                )),
+                ),
+              );
+            }),
             if (futures.isNotEmpty) ...[
               const SizedBox(height: 8),
               Divider(color: AppColors.success.withValues(alpha: 0.25)),
@@ -168,16 +222,22 @@ class _MetierTile extends StatelessWidget {
                   const Icon(Icons.trending_up,
                       size: 17, color: AppColors.success),
                   const SizedBox(width: 6),
-                  Text('${tr('Prochains taux', 'Upcoming rates')} ($libelleComp)',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12.5,
-                          color: AppColors.success)),
+                  Expanded(
+                    child: Text(
+                        '${tr('Prochaines hausses', 'Upcoming increases')} — ${sel.nom}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12.5,
+                            color: AppColors.success)),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
               ...futures.map((h) {
-                final double r = CcqData.tauxCompagnon(metier, secteur, on: h.date);
+                final double r = CcqData.tauxCompagnon(metier, secteur,
+                        on: h.date) *
+                    sel.pourcentage /
+                    100;
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(

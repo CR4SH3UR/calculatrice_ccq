@@ -217,7 +217,7 @@ class _SectionOutils extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             duration: const Duration(milliseconds: 1200),
             content: Text(ajoute
-                ? '${outilTitre(o)} ${tr('ajouté aux favoris', 'added to favorites')} ⭐'
+                ? '${outilTitre(o)} ${tr('ajouté aux favoris', 'added to favorites')}'
                 : '${outilTitre(o)} ${tr('retiré des favoris', 'removed from favorites')}'),
           ));
         },

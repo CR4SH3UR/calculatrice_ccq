@@ -114,7 +114,7 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
     Clipboard.setData(ClipboardData(text: sb.toString()));
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content:
-            Text(tr('Feuille de temps copiée ✓', 'Timesheet copied ✓'))));
+            Text(tr('Feuille de temps copiée', 'Timesheet copied'))));
   }
 
   Future<void> _partagerPdf() async {
@@ -141,7 +141,7 @@ class _FeuilleTempsScreenState extends State<FeuilleTempsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(tr(
-              'Journée dupliquée à aujourd\'hui ✓', 'Day duplicated to today ✓'))));
+              'Journée dupliquée à aujourd\'hui', 'Day duplicated to today'))));
     }
   }
 
