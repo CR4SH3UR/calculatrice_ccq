@@ -89,4 +89,13 @@ class RepresentantsStore extends ChangeNotifier {
     await _sauver();
     notifyListeners();
   }
+
+  /// Remplace toute la liste (utilisé par la restauration depuis le cloud).
+  Future<void> remplacerTout(List<Representant> nouveaux) async {
+    _list
+      ..clear()
+      ..addAll(nouveaux);
+    await _sauver();
+    notifyListeners();
+  }
 }

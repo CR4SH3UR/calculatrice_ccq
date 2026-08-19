@@ -59,6 +59,13 @@ dependencies:
   # Ouvrir un PDF téléchargé (conventions) dans le lecteur du téléphone.
   open_filex: ^4.5.0
 
+  # Connexion (login) + sauvegarde cloud des données de l'utilisateur.
+  # Les versions exactes sont ajustées par `flutterfire configure` selon la
+  # version du SDK Flutter installée (voir docs/FIREBASE_LOGIN.md).
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
