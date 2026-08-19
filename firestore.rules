@@ -1,0 +1,17 @@
+rules_version = '2';
+
+// Règles de sécurité Firestore pour la Calculatrice CCQ.
+//
+// Chaque utilisateur ne peut lire et écrire QUE son propre document
+// (utilisateurs/{sonUid}). Personne d'autre n'y a accès.
+//
+// Déploiement :  firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /utilisateurs/{userId} {
+      allow read, write: if request.auth != null
+                         && request.auth.uid == userId;
+    }
+    // Tout le reste est refusé par défaut.
+  }
+}

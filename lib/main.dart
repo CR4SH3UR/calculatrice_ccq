@@ -5,12 +5,16 @@ import 'data/app_prefs.dart';
 import 'data/heures_store.dart';
 import 'l10n/lang.dart';
 import 'screens/home_screen.dart';
+import 'services/firebase_boot.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HeuresStore.instance.charger();
   await AppPrefs.charger();
+  // N'initialise Firebase que si la config est en place ; sinon l'app reste
+  // 100 % locale et l'entrée « Compte » est masquée (voir FirebaseBoot).
+  await FirebaseBoot.initialiser();
   runApp(const CalculatriceCcqApp());
 }
 

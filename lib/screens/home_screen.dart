@@ -5,9 +5,11 @@ import '../data/ccq_data.dart';
 import '../data/outils_registry.dart';
 import '../data/profil.dart';
 import '../l10n/lang.dart';
+import '../services/firebase_boot.dart';
 import '../theme/app_theme.dart';
 import '../utils/format.dart';
 import '../widgets/common.dart';
+import 'compte_screen.dart';
 import 'profil_screen.dart';
 import 'recherche_screen.dart';
 
@@ -140,6 +142,21 @@ class _Header extends StatelessWidget {
                     onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                             builder: (_) => const ProfilScreen())),
+                  ),
+                  // Bouton « Compte » (connexion / sauvegarde cloud) : visible
+                  // seulement quand Firebase est configuré.
+                  ValueListenableBuilder<bool>(
+                    valueListenable: FirebaseBoot.pret,
+                    builder: (context, pret, _) => pret
+                        ? IconButton(
+                            tooltip: tr('Compte', 'Account'),
+                            icon: const Icon(Icons.cloud_outlined,
+                                color: Colors.white),
+                            onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const CompteScreen())),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                   IconButton(
                     tooltip: tr('Rechercher', 'Search'),
