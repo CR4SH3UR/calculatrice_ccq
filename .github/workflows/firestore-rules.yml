@@ -1,0 +1,42 @@
+# Déploie les règles de sécurité Firestore automatiquement quand elles changent.
+#
+# Utilise le même secret « FIREBASE_SERVICE_ACCOUNT » que le déploiement web.
+# Tant qu'il est absent, l'étape est ignorée (avertissement, pas d'échec).
+#
+# Prérequis (une seule fois) : la base Firestore doit exister dans la console
+# Firebase (elle l'est déjà — les règles ont été déployées le 2026-08-19).
+name: Déploiement des règles Firestore
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'firestore.rules'
+      - 'firebase.json'
+      - '.firebaserc'
+      - '.github/workflows/firestore-rules.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-rules:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret Firebase manquant (déploiement ignoré)
+        if: env.FIREBASE_SERVICE_ACCOUNT == ''
+        run: |
+          echo "::warning title=Règles Firestore non déployées::Le secret FIREBASE_SERVICE_ACCOUNT n'est pas configuré, donc les règles n'ont pas été déployées."
+
+      - name: Déployer les règles Firestore
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
+        run: |
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          npx -y firebase-tools@latest deploy --only firestore:rules \
+            --project calculatriceccq --non-interactive
