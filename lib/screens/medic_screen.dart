@@ -132,6 +132,26 @@ const Map<String, String> _medicEn = {
 /// Libellé MÉDIC traduit : anglais depuis la table, repli sur le français.
 String _mtr(String fr) => tr(fr, _medicEn[fr] ?? fr);
 
+// ── Période en vigueur + bulletins officiels ──────────────────────────────
+// Les bulletins MÉDIC sont publiés deux fois par année (périodes janv.–juin et
+// juill.–déc.). Les données reproduites ici viennent des bulletins de la
+// période en cours. Le dossier « juillet » de ccq.org pointe le bulletin en
+// vigueur pour cette période — c'est notre bouton « vérifier le dernier ».
+const String _medicPeriodeFr =
+    'En vigueur du 1er juillet au 31 décembre 2026';
+const String _medicPeriodeEn = 'In effect July 1 to December 31, 2026';
+const String _medicBulletinFr = 'Bulletins vol. 25 no 2 (juillet 2026)';
+const String _medicBulletinEn = 'Bulletins vol. 25 no. 2 (July 2026)';
+
+const String _urlBulletinMetiers =
+    'https://www.ccq.org/-/media/Project/Ccq/Ccq-Website/PDF/AvantagesSociaux/BulletinMedic/juillet/110406-110385-PD5212.pdf';
+const String _urlBulletinOccupations =
+    'https://www.ccq.org/-/media/Project/Ccq/Ccq-Website/PDF/AvantagesSociaux/BulletinMedic/juillet/110412-PD5225.pdf';
+
+// Numéros d'aide MÉDIC (vérifiés sur les sources officielles CCQ).
+const String _telConstruireEnSante = '1 800 807-2433';
+const String _telServiceClientCcq = '1 888 842-8282';
+
 class _Couverture {
   const _Couverture(this.titre, this.icon, this.details);
   final String titre;
@@ -364,6 +384,41 @@ class MedicScreen extends StatelessWidget {
           icon: Icons.health_and_safety,
           color: AppColors.medic,
         ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.medic.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.medic.withValues(alpha: 0.35)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.event_available, color: AppColors.medic),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tr(_medicPeriodeFr, _medicPeriodeEn),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: AppColors.medic)),
+                    const SizedBox(height: 2),
+                    Text(tr(_medicBulletinFr, _medicBulletinEn),
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.65))),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
         SectionTitle(tr('Ce que ça couvre', 'What it covers'),
             color: AppColors.medic),
@@ -422,6 +477,61 @@ class MedicScreen extends StatelessWidget {
                   'includes dental insurance (except plan D). Amounts are '
                   'indicative; only Regulation R-20, r. 10 is official — your '
                   'actual coverage is on your statement.'),
+        ),
+        const SizedBox(height: 16),
+        SectionTitle(
+            tr('Vérifier le dernier bulletin', 'Check the latest bulletin'),
+            color: AppColors.medic),
+        const SizedBox(height: 6),
+        InfoBanner(
+          text: tr(
+              'MÉDIC n\'a pas de mise à jour automatique comme les taux de '
+                  'salaire. Ouvre le bulletin officiel de ton régime pour '
+                  'confirmer les montants et voir s\'il y a une nouvelle version.',
+              'MÉDIC has no automatic update like the wage rates. Open your '
+                  'plan\'s official bulletin to confirm the amounts and check for '
+                  'a newer version.'),
+          icon: Icons.sync,
+          color: AppColors.medic,
+        ),
+        const SizedBox(height: 8),
+        LinkTile(
+          icon: Icons.picture_as_pdf,
+          title: tr('Bulletin — régime des métiers (A-D)',
+              'Bulletin — trades plan (A-D)'),
+          subtitle: tr('PDF officiel · PD5212 · ccq.org',
+              'Official PDF · PD5212 · ccq.org'),
+          url: _urlBulletinMetiers,
+          color: AppColors.medic,
+        ),
+        LinkTile(
+          icon: Icons.picture_as_pdf,
+          title: tr('Bulletin — régime des occupations (AO-DO)',
+              'Bulletin — occupations plan (AO-DO)'),
+          subtitle: tr('PDF officiel · PD5225 · ccq.org',
+              'Official PDF · PD5225 · ccq.org'),
+          url: _urlBulletinOccupations,
+          color: AppColors.medic,
+        ),
+        const SizedBox(height: 16),
+        SectionTitle(tr('Besoin d\'aide ?', 'Need help?'),
+            color: AppColors.medic),
+        const SizedBox(height: 6),
+        ToolListTile(
+          icon: Icons.call,
+          title: 'CONSTRUIRE en santé',
+          subtitle:
+              '$_telConstruireEnSante · ${tr('santé physique et mentale, confidentiel', 'physical & mental health, confidential')}',
+          color: AppColors.medic,
+          onTap: () => appelerNumero(context, _telConstruireEnSante),
+        ),
+        ToolListTile(
+          icon: Icons.call,
+          title: tr('Service à la clientèle CCQ', 'CCQ customer service'),
+          subtitle:
+              '$_telServiceClientCcq · ${tr('MÉDIC, réclamations', 'MÉDIC, claims')}',
+          color: AppColors.medic,
+          onTap: () => appelerNumero(context, _telServiceClientCcq),
         ),
         const SizedBox(height: 14),
         LinkTile(
