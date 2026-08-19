@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculatrice CCQ</title>
+<meta name="description" content="Calculatrice CCQ — la boîte à outils de chantier pour les travailleurs de la construction du Québec. Paie, taux par métier, MÉDIC, sécurité, profil. Application Android gratuite.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>👷</text></svg>">
+<style>
+  :root{
+    --blue:#0B63CE; --blue-dark:#0A4EA3; --orange:#FF7A1A; --orange-soft:#FFB067;
+    --bg:#F4F6FB; --card:#FFFFFF; --text:#0E1116; --muted:#5B6472;
+    --border:rgba(11,27,51,.09); --shadow:rgba(11,27,51,.08);
+    --paie:#2E7D32; --medic:#C2185B; --syndicat:#00796B; --infos:#6A3DB8;
+    --charpente:#B26A00; --materiaux:#6D4C41;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0E1116; --card:#171B22; --text:#E8EBF0; --muted:#9AA4B2;
+      --border:rgba(255,255,255,.09); --shadow:rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+  .wrap{max-width:1000px; margin:0 auto; padding:0 20px}
+
+  /* ── Hero ───────────────────────────────────────────────── */
+  .hero{
+    background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+    color:#fff; border-radius:0 0 32px 32px; overflow:hidden; position:relative;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0; opacity:.5; pointer-events:none;
+    background:radial-gradient(60% 120% at 85% -10%, rgba(255,122,26,.35), transparent 60%);
+  }
+  .hero-inner{position:relative; padding:56px 20px 60px; text-align:center; max-width:760px; margin:0 auto}
+  .badge{
+    display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700;
+    letter-spacing:.3px; text-transform:uppercase; color:#fff;
+    background:rgba(255,255,255,.16); padding:6px 12px; border-radius:999px; margin-bottom:22px;
+  }
+  .logo{width:88px; height:88px; margin:0 auto 18px; display:block; filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+  h1{
+    margin:0; font-size:clamp(34px,7vw,52px); font-weight:900; letter-spacing:-1.5px;
+    text-wrap:balance;
+  }
+  .tagline{margin:10px 0 0; font-size:clamp(15px,2.6vw,19px); color:rgba(255,255,255,.9); font-weight:500}
+  .cta{
+    display:inline-flex; align-items:center; gap:11px; margin-top:30px;
+    background:var(--orange); color:#1a1000; text-decoration:none; font-weight:800;
+    font-size:17px; padding:16px 28px; border-radius:16px;
+    box-shadow:0 10px 28px rgba(255,122,26,.4); transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .cta:hover{transform:translateY(-2px); box-shadow:0 14px 34px rgba(255,122,26,.5)}
+  .cta:active{transform:translateY(0)}
+  .cta svg{width:22px;height:22px}
+  .meta{margin-top:14px; font-size:13px; color:rgba(255,255,255,.85)}
+  .meta a{color:#fff}
+  .platform{margin-top:6px; font-size:12px; color:rgba(255,255,255,.7)}
+
+  /* ── Sections ───────────────────────────────────────────── */
+  section{padding:52px 0}
+  .eyebrow{
+    font-size:12.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--blue); margin:0 0 6px;
+  }
+  @media (prefers-color-scheme:dark){ .eyebrow{color:var(--orange-soft)} }
+  h2{margin:0 0 26px; font-size:clamp(24px,4vw,32px); font-weight:850; letter-spacing:-.6px; text-wrap:balance}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px}
+  .feat{
+    background:var(--card); border:1px solid var(--border); border-radius:18px; padding:22px;
+    box-shadow:0 1px 2px var(--shadow);
+  }
+  .feat .ic{
+    width:44px;height:44px;border-radius:12px;display:grid;place-items:center;margin-bottom:14px;
+    font-size:22px;
+  }
+  .feat h3{margin:0 0 6px; font-size:17px; font-weight:800; letter-spacing:-.2px}
+  .feat p{margin:0; font-size:14px; color:var(--muted)}
+
+  /* ── Install ────────────────────────────────────────────── */
+  .steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; counter-reset:s}
+  .step{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px 20px 20px; position:relative}
+  .step::before{
+    counter-increment:s; content:counter(s); display:grid; place-items:center;
+    width:30px;height:30px;border-radius:9px; background:var(--blue); color:#fff;
+    font-weight:800; font-size:15px; margin-bottom:12px;
+  }
+  .step h3{margin:0 0 4px; font-size:15.5px; font-weight:800}
+  .step p{margin:0; font-size:13.5px; color:var(--muted)}
+
+  /* ── Disclaimer / footer ────────────────────────────────── */
+  .note{
+    background:color-mix(in srgb, var(--orange) 12%, var(--card));
+    border:1px solid color-mix(in srgb, var(--orange) 35%, transparent);
+    border-radius:16px; padding:18px 20px; font-size:13.5px; color:var(--text);
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .note svg{flex:0 0 auto; width:20px;height:20px; color:var(--orange); margin-top:1px}
+  footer{border-top:1px solid var(--border); padding:34px 0 46px; margin-top:20px}
+  .foot{display:flex; flex-wrap:wrap; gap:14px 24px; align-items:center; justify-content:space-between}
+  .made{font-weight:800; font-size:15px}
+  .made span{color:var(--muted); font-weight:600}
+  .links{display:flex; gap:20px; flex-wrap:wrap; font-size:14px; font-weight:600}
+  .links a{color:var(--blue); text-decoration:none}
+  @media (prefers-color-scheme:dark){ .links a{color:var(--orange-soft)} }
+  .links a:hover{text-decoration:underline}
+  .copy{margin-top:18px; font-size:12.5px; color:var(--muted)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="badge">Non officiel · Fait au Québec</span>
+    <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M14 42 V38 a18 18 0 0 1 36 0 V42 Z" fill="#fff"/>
+      <path d="M29 21 h6 v20 h-6 Z" fill="#fff"/>
+      <rect x="5" y="42" width="54" height="9.5" rx="4.75" fill="#fff"/>
+      <rect x="5" y="42" width="54" height="3.2" rx="1.6" fill="#FF7A1A"/>
+    </svg>
+    <h1>Calculatrice CCQ</h1>
+    <p class="tagline">Ta boîte à outils de chantier — paie, taux, MÉDIC, sécurité et plus, dans ta poche.</p>
+    <a class="cta" href="https://github.com/CR4SH3UR/calculatrice_ccq/releases/download/v1.1.1/calculatrice-ccq-v1.1.1.apk">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1Zm-7 15a1 1 0 0 1 1 1v1h12v-1a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1Z"/></svg>
+      Télécharger pour Android
+    </a>
+    <p class="meta">Version 1.1.1 · ~56&nbsp;Mo · APK signé · <a href="https://github.com/CR4SH3UR/calculatrice_ccq/releases">toutes les versions</a></p>
+    <p class="platform">Application Android (fichier APK). Bilingue français / anglais.</p>
+  </div>
+</header>
+
+<main>
+<section class="wrap">
+  <p class="eyebrow">Ce qu'elle fait</p>
+  <h2>Plus de 50 outils, pensés pour le chantier</h2>
+  <div class="grid">
+    <div class="feat">
+      <div class="ic" style="background:color-mix(in srgb,var(--paie) 15%,transparent);color:var(--paie)">💵</div>
+      <h3>Paie &amp; taux</h3>
+      <p>Calculateur de paie (brut, congés 13&nbsp;%, net), taux par métier avec les prochaines hausses, et comparateur des 5 conventions.</p>
+    </div>
+    <div class="feat">
+      <div class="ic" style="background:color-mix(in srgb,var(--chantier) 15%,transparent);color:var(--blue)">⏱️</div>
+      <h3>Feuille de temps</h3>
+      <p>Note et totalise tes heures (1×, 1,5×, 2×), génère un rapport, exporte en PDF ou CSV, et garde une sauvegarde.</p>
+    </div>
+    <div class="feat">
+      <div class="ic" style="background:color-mix(in srgb,var(--medic) 15%,transparent);color:var(--medic)">🩺</div>
+      <h3>MÉDIC &amp; retraite</h3>
+      <p>Comparatif complet des régimes (métiers et occupations), dates en vigueur, bulletins officiels et projection de retraite.</p>
+    </div>
+    <div class="feat">
+      <div class="ic" style="background:color-mix(in srgb,var(--infos) 15%,transparent);color:var(--infos)">⛑️</div>
+      <h3>Santé-sécurité</h3>
+      <p>Pictogrammes SIMDUT, distances d'approche des lignes électriques, et aide-mémoire de sécurité sur le chantier.</p>
+    </div>
+    <div class="feat">
+      <div class="ic" style="background:color-mix(in srgb,var(--paie) 15%,transparent);color:var(--paie)">👤</div>
+      <h3>Mon profil</h3>
+      <p>Métier, secteur, taux, carte ASP (avec alerte d'expiration) et contacts d'urgence — gardés localement sur ton appareil.</p>
+    </div>
+    <div class="feat">
+      <div class="ic" style="background:color-mix(in srgb,var(--syndicat) 15%,transparent);color:var(--syndicat)">👷</div>
+      <h3>Syndicats</h3>
+      <p>Les 5 associations avec leur numéro officiel, un bouton pour appeler, et ta propre liste de représentants.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <p class="eyebrow">En 3 étapes</p>
+  <h2>Installer sur Android</h2>
+  <div class="steps">
+    <div class="step">
+      <h3>Télécharge l'APK</h3>
+      <p>Touche « Télécharger pour Android » ci-dessus. Le fichier se place dans tes téléchargements.</p>
+    </div>
+    <div class="step">
+      <h3>Autorise l'installation</h3>
+      <p>Ouvre le fichier. Si Android le demande, autorise l'installation d'apps depuis cette source.</p>
+    </div>
+    <div class="step">
+      <h3>Installe et ouvre</h3>
+      <p>Touche « Installer », puis ouvre la Calculatrice CCQ. C'est tout — aucune inscription.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <div class="note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+    <div><strong>Outil non officiel</strong>, sans lien avec la CCQ. Les chiffres sont indicatifs : en cas d'écart, la convention collective, les bulletins MÉDIC et <a href="https://www.ccq.org">ccq.org</a> font foi. Les numéros de sièges syndicaux et des services CCQ sont vérifiés sur les sources officielles.</div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <div class="foot">
+    <div class="made">Fait par Alexandre Dickie <span>· boîte à outils de chantier</span></div>
+    <div class="links">
+      <a href="https://github.com/CR4SH3UR/calculatrice_ccq">Code source (GitHub)</a>
+      <a href="https://github.com/CR4SH3UR/calculatrice_ccq/releases">Versions</a>
+      <a href="https://www.ccq.org">ccq.org</a>
+    </div>
+  </div>
+  <p class="copy">© 2026 Alexandre Dickie · Application non officielle · Made in Québec 🏗️</p>
+</footer>
+
+</body>
+</html>
