@@ -1,63 +1,27 @@
 import 'package:flutter/material.dart';
 
+import '../data/app_prefs.dart';
+import '../data/representants.dart';
+import '../data/syndicats.dart';
 import '../l10n/lang.dart';
 import '../theme/app_theme.dart';
 import '../widgets/common.dart';
 import '../widgets/link_tile.dart';
 
-/// Une association syndicale représentative (loi R-20).
-class _Union {
-  const _Union(
-      this.sigle, this.nom, this.representativite, this.site, this.representants);
-  final String sigle;
-  final String nom;
-  final double representativite; // % au scrutin 2024
-  final String site;
-  final String representants; // page « représentants / nous joindre »
-}
-
-// Triées par représentativité (scrutin 2024). Sources : ccq.org et sites des
-// syndicats (pages officielles des représentants / « nous joindre »).
-const List<_Union> _unions = [
-  _Union(
-    'FTQ-Construction',
-    'Fédération des travailleurs et travailleuses du Québec',
-    44.069,
-    'https://ftqconstruction.org',
-    'https://ftqconstruction.org/trouvez-vos-representant-e-s/',
-  ),
-  _Union(
-    'SQC',
-    'Syndicat québécois de la construction',
-    21.703,
-    'https://www.sqc.ca',
-    'https://www.sqc.ca/nous-joindre/',
-  ),
-  _Union(
-    'International (CPQMC)',
-    'Conseil provincial du Québec des métiers de la construction',
-    20.698,
-    'https://cpqmci.org',
-    'https://cpqmci.org/sections-locales/',
-  ),
-  _Union(
-    'CSD Construction',
-    'Centrale des syndicats démocratiques',
-    7.552,
-    'https://www.csd.qc.ca',
-    'https://www.csd.qc.ca/nous-contacter/',
-  ),
-  _Union(
-    'CSN-Construction',
-    'Confédération des syndicats nationaux',
-    5.978,
-    'https://www.csnconstruction.qc.ca',
-    'https://www.csnconstruction.qc.ca/a-propos/structure/',
-  ),
-];
-
 class SyndicatScreen extends StatelessWidget {
   const SyndicatScreen({super.key});
+
+  Future<void> _editerRep(BuildContext context, {Representant? existant}) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
+        child: _RepForm(existant: existant),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,20 +33,67 @@ class SyndicatScreen extends StatelessWidget {
               'La construction au Québec compte 5 associations syndicales '
                   'représentatives (loi R-20). Tu choisis ton allégeance lors '
                   'du scrutin syndical; la représentativité ci-dessous vient du '
-                  'scrutin de 2024. Touche « Représentants » pour joindre le '
-                  'tien.',
+                  'scrutin de 2024. Touche « Appeler » pour joindre le siège, ou '
+                  '« Représentants » pour trouver le tien.',
               'Quebec construction has 5 representative union associations '
                   '(Act R-20). You choose your allegiance at the union vote; the '
-                  'representativity below comes from the 2024 vote. Tap '
-                  '« Representatives » to reach yours.'),
+                  'representativity below comes from the 2024 vote. Tap « Call » '
+                  'to reach the head office, or « Representatives » to find '
+                  'yours.'),
           icon: Icons.groups,
           color: AppColors.syndicat,
         ),
         const SizedBox(height: 16),
         SectionTitle(tr('Les 5 associations', 'The 5 associations'),
             color: AppColors.syndicat),
-        ..._unions.map((u) => _UnionCard(union: u)),
+        ...syndicats.map((u) => _UnionCard(union: u)),
+        const SizedBox(height: 16),
+
+        // ── Mes représentants (saisis par l'utilisateur) ─────────────────
+        SectionTitle(tr('Mes représentants', 'My representatives'),
+            color: AppColors.syndicat),
+        InfoBanner(
+          text: tr(
+              'Ajoute ici les coordonnées de TES représentants (délégué de '
+                  'chantier, agent d\'affaires…). Elles restent sur ton téléphone. '
+                  'Pour trouver le bon représentant, utilise « Représentants » sur '
+                  'la carte de ton syndicat ci-dessus.',
+              'Add YOUR representatives\' contact info here (site steward, '
+                  'business agent…). It stays on your phone. To find the right '
+                  'representative, use « Representatives » on your union\'s card '
+                  'above.'),
+          icon: Icons.contacts,
+          color: AppColors.syndicat,
+        ),
         const SizedBox(height: 10),
+        ListenableBuilder(
+          listenable: AppPrefs.representants,
+          builder: (context, _) {
+            final reps = AppPrefs.representants.all;
+            return Column(
+              children: [
+                for (final r in reps)
+                  _RepCard(
+                    rep: r,
+                    onEdit: () => _editerRep(context, existant: r),
+                    onDelete: () => AppPrefs.representants.supprimer(r.id),
+                  ),
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => _editerRep(context),
+                    icon: const Icon(Icons.person_add_alt),
+                    label: Text(tr('Ajouter un représentant',
+                        'Add a representative')),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+
         SectionTitle(tr('Cotisations syndicales', 'Union dues'),
             color: AppColors.syndicat),
         InfoBanner(
@@ -117,7 +128,7 @@ class SyndicatScreen extends StatelessWidget {
 
 class _UnionCard extends StatelessWidget {
   const _UnionCard({required this.union});
-  final _Union union;
+  final Syndicat union;
 
   @override
   Widget build(BuildContext context) {
@@ -183,6 +194,19 @@ class _UnionCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            if (union.telephone != null) ...[
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => appelerNumero(context, union.telephone!),
+                  style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.syndicat),
+                  icon: const Icon(Icons.call, size: 18),
+                  label: Text('${tr('Appeler', 'Call')} · ${union.telephone}'),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             Row(
               children: [
                 Expanded(
@@ -197,7 +221,6 @@ class _UnionCard extends StatelessWidget {
                   child: _LinkChip(
                     icon: Icons.contact_phone,
                     label: tr('Représentants', 'Representatives'),
-                    filled: true,
                     onTap: () => openUrl(context, union.representants),
                   ),
                 ),
@@ -205,6 +228,227 @@ class _UnionCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Carte d'un représentant personnel, avec actions appeler/écrire/modifier.
+class _RepCard extends StatelessWidget {
+  const _RepCard(
+      {required this.rep, required this.onEdit, required this.onDelete});
+  final Representant rep;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurf = Theme.of(context).colorScheme.onSurface;
+    final sousTitre = [
+      if (rep.poste.isNotEmpty) rep.poste,
+      if (rep.syndicat.isNotEmpty) rep.syndicat,
+    ].join(' · ');
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 6, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(rep.nom.isEmpty ? tr('(Sans nom)', '(No name)') : rep.nom,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 15)),
+                      if (sousTitre.isNotEmpty)
+                        Text(sousTitre,
+                            style: TextStyle(
+                                fontSize: 12.5,
+                                color: onSurf.withValues(alpha: 0.6))),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined, size: 20),
+                  tooltip: tr('Modifier', 'Edit'),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 20),
+                  tooltip: tr('Supprimer', 'Delete'),
+                  onPressed: onDelete,
+                ),
+              ],
+            ),
+            if (rep.telephone.isNotEmpty || rep.courriel.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, right: 8),
+                child: Row(
+                  children: [
+                    if (rep.telephone.isNotEmpty)
+                      Expanded(
+                        child: _LinkChip(
+                          icon: Icons.call,
+                          label: rep.telephone,
+                          filled: true,
+                          onTap: () => appelerNumero(context, rep.telephone),
+                        ),
+                      ),
+                    if (rep.telephone.isNotEmpty && rep.courriel.isNotEmpty)
+                      const SizedBox(width: 10),
+                    if (rep.courriel.isNotEmpty)
+                      Expanded(
+                        child: _LinkChip(
+                          icon: Icons.mail_outline,
+                          label: tr('Écrire', 'Email'),
+                          onTap: () => envoyerCourriel(context, rep.courriel),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Formulaire d'ajout / modification d'un représentant.
+class _RepForm extends StatefulWidget {
+  const _RepForm({this.existant});
+  final Representant? existant;
+
+  @override
+  State<_RepForm> createState() => _RepFormState();
+}
+
+class _RepFormState extends State<_RepForm> {
+  late final TextEditingController _nom;
+  late final TextEditingController _poste;
+  late final TextEditingController _tel;
+  late final TextEditingController _courriel;
+  String _syndicat = '';
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existant;
+    _nom = TextEditingController(text: e?.nom ?? '');
+    _poste = TextEditingController(text: e?.poste ?? '');
+    _tel = TextEditingController(text: e?.telephone ?? '');
+    _courriel = TextEditingController(text: e?.courriel ?? '');
+    _syndicat = e?.syndicat ?? '';
+  }
+
+  @override
+  void dispose() {
+    _nom.dispose();
+    _poste.dispose();
+    _tel.dispose();
+    _courriel.dispose();
+    super.dispose();
+  }
+
+  void _enregistrer() {
+    final e = widget.existant;
+    AppPrefs.representants.enregistrer(Representant(
+      id: e?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      nom: _nom.text.trim(),
+      poste: _poste.text.trim(),
+      telephone: _tel.text.trim(),
+      courriel: _courriel.text.trim(),
+      syndicat: _syndicat,
+    ));
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sigles = {for (final u in syndicats) u.sigle: u.sigle};
+    final String val = sigles.containsKey(_syndicat) ? _syndicat : '';
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+              widget.existant == null
+                  ? tr('Nouveau représentant', 'New representative')
+                  : tr('Modifier le représentant', 'Edit representative'),
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _nom,
+            textCapitalization: TextCapitalization.words,
+            decoration: InputDecoration(
+                labelText: tr('Nom', 'Name'),
+                prefixIcon: const Icon(Icons.person_outline)),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _poste,
+            decoration: InputDecoration(
+                labelText: tr('Poste / fonction', 'Position / role'),
+                hintText: tr('Ex. délégué de chantier, agent d\'affaires',
+                    'E.g. site steward, business agent'),
+                prefixIcon: const Icon(Icons.badge_outlined)),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _tel,
+            keyboardType: TextInputType.phone,
+            decoration: InputDecoration(
+                labelText: tr('Téléphone', 'Phone'),
+                prefixIcon: const Icon(Icons.phone_outlined)),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _courriel,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+                labelText: tr('Courriel', 'Email'),
+                prefixIcon: const Icon(Icons.mail_outline)),
+          ),
+          const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: val,
+            isExpanded: true,
+            decoration: InputDecoration(
+                labelText: tr('Allégeance syndicale', 'Union allegiance'),
+                prefixIcon: const Icon(Icons.groups_outlined)),
+            items: [
+              DropdownMenuItem(
+                  value: '', child: Text(tr('— Non précisé', '— Not set'))),
+              for (final s in sigles.keys)
+                DropdownMenuItem(value: s, child: Text(s)),
+            ],
+            onChanged: (v) => setState(() => _syndicat = v ?? ''),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(tr('Annuler', 'Cancel')),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
+                  onPressed: _enregistrer,
+                  child: Text(tr('Enregistrer', 'Save')),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -232,17 +476,21 @@ class _LinkChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, size: 17, color: filled ? Colors.white : c),
               const SizedBox(width: 7),
-              Text(label,
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: filled ? Colors.white : c)),
+              Flexible(
+                child: Text(label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: filled ? Colors.white : c)),
+              ),
             ],
           ),
         ),

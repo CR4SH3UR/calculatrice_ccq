@@ -46,6 +46,26 @@ Future<void> appelerNumero(BuildContext context, String numero) async {
   }
 }
 
+/// Ouvre l'app courriel pour écrire à [courriel]. Copie l'adresse en repli.
+Future<void> envoyerCourriel(BuildContext context, String courriel) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final String adr = courriel.trim();
+  if (adr.isEmpty) return;
+  final Uri uri = Uri(scheme: 'mailto', path: adr);
+  bool ok = false;
+  try {
+    ok = await launchUrl(uri);
+  } catch (_) {
+    ok = false;
+  }
+  if (!ok) {
+    await Clipboard.setData(ClipboardData(text: adr));
+    messenger.showSnackBar(SnackBar(
+        content: Text(tr('Impossible d\'ouvrir le courriel — adresse copiée.',
+            'Could not open email — address copied.'))));
+  }
+}
+
 /// Carte-lien : icône + titre + sous-titre + flèche « ouvrir ». Ouvre [url].
 class LinkTile extends StatelessWidget {
   const LinkTile({

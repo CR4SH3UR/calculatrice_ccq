@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/lang.dart';
 import 'profil.dart';
+import 'representants.dart';
 
 /// Préférences de l'app : thème et outils favoris, persistés localement.
 class AppPrefs {
@@ -27,6 +28,9 @@ class AppPrefs {
   /// Ensemble des identifiants d'outils favoris.
   static final FavorisStore favoris = FavorisStore._();
 
+  /// Représentants syndicaux saisis par l'utilisateur (local uniquement).
+  static final RepresentantsStore representants = RepresentantsStore();
+
   static Future<void> charger() async {
     final prefs = await SharedPreferences.getInstance();
     final t = prefs.getString(_cleTheme);
@@ -39,6 +43,7 @@ class AppPrefs {
     langue.value = prefs.getString(_cleLangue) == 'en' ? Lang.en : Lang.fr;
     profil.value = Profil.decode(prefs.getString(_cleProfil));
     favoris._charger(prefs.getStringList(_cleFavoris) ?? const []);
+    await representants.charger();
   }
 
   /// Enregistre le profil de l'utilisateur.
