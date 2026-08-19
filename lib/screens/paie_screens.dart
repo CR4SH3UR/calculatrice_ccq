@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import '../data/app_prefs.dart';
 import '../data/ccq_data.dart';
 import '../data/heures_store.dart';
 import '../l10n/lang.dart';
@@ -47,6 +48,28 @@ class _CalculateurPaieScreenState extends State<CalculateurPaieScreen> {
   final _aeCtrl = TextEditingController(text: '1.32');
   final _rqapCtrl = TextEditingController(text: '0.494');
   final _autresCtrl = TextEditingController(text: '0');
+
+  @override
+  void initState() {
+    super.initState();
+    // Pré-remplissage depuis le profil (métier, secteur, taux).
+    final p = AppPrefs.profil.value;
+    if (p.tauxHoraire != null) _tauxCtrl.text = Fmt.trim(p.tauxHoraire!);
+    if (p.metier.isNotEmpty) {
+      final m = CcqData.metiers.where((x) => x.nom == p.metier);
+      if (m.isNotEmpty) _metier = m.first;
+    }
+    if (p.secteur.isNotEmpty) {
+      for (final s in Secteur.values) {
+        if (s.name == p.secteur) {
+          _secteur = s;
+          break;
+        }
+      }
+    }
+    // Si le taux perso n'est pas connu mais le métier oui, partir en « métier ».
+    if (p.tauxHoraire == null && p.metier.isNotEmpty) _parMetier = true;
+  }
 
   @override
   void dispose() {

@@ -25,6 +25,27 @@ Future<void> openUrl(BuildContext context, String url) async {
   }
 }
 
+/// Lance un appel téléphonique vers [numero]. Si le composeur ne s'ouvre pas,
+/// copie le numéro dans le presse-papiers et le signale.
+Future<void> appelerNumero(BuildContext context, String numero) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final String tel = numero.replaceAll(RegExp(r'[^0-9+]'), '');
+  if (tel.isEmpty) return;
+  final Uri uri = Uri(scheme: 'tel', path: tel);
+  bool ok = false;
+  try {
+    ok = await launchUrl(uri);
+  } catch (_) {
+    ok = false;
+  }
+  if (!ok) {
+    await Clipboard.setData(ClipboardData(text: numero));
+    messenger.showSnackBar(SnackBar(
+        content: Text(tr('Appel impossible — numéro copié dans le presse-papiers.',
+            'Call failed — number copied to the clipboard.'))));
+  }
+}
+
 /// Carte-lien : icône + titre + sous-titre + flèche « ouvrir ». Ouvre [url].
 class LinkTile extends StatelessWidget {
   const LinkTile({

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/lang.dart';
+import 'profil.dart';
 
 /// Préférences de l'app : thème et outils favoris, persistés localement.
 class AppPrefs {
@@ -11,6 +12,7 @@ class AppPrefs {
   static const String _cleFavoris = 'favoris_v1';
   static const String _cleObjectif = 'objectif_hebdo_v1';
   static const String _cleLangue = 'langue_v1';
+  static const String _cleProfil = 'profil_v1';
 
   /// Mode de thème choisi (clair / sombre / système).
   static final ValueNotifier<ThemeMode> theme =
@@ -18,6 +20,9 @@ class AppPrefs {
 
   /// Objectif d'heures par semaine (feuille de temps).
   static final ValueNotifier<double> objectifHebdo = ValueNotifier(40);
+
+  /// Profil de l'utilisateur (infos de travail, local uniquement).
+  static final ValueNotifier<Profil> profil = ValueNotifier(const Profil());
 
   /// Ensemble des identifiants d'outils favoris.
   static final FavorisStore favoris = FavorisStore._();
@@ -32,7 +37,15 @@ class AppPrefs {
     };
     objectifHebdo.value = prefs.getDouble(_cleObjectif) ?? 40;
     langue.value = prefs.getString(_cleLangue) == 'en' ? Lang.en : Lang.fr;
+    profil.value = Profil.decode(prefs.getString(_cleProfil));
     favoris._charger(prefs.getStringList(_cleFavoris) ?? const []);
+  }
+
+  /// Enregistre le profil de l'utilisateur.
+  static Future<void> setProfil(Profil p) async {
+    profil.value = p;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_cleProfil, p.encode());
   }
 
   /// Change la langue de l'interface (FR/EN) et la persiste.
