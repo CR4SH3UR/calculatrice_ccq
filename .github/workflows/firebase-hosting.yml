@@ -1,4 +1,4 @@
-# Déploie la page web (docs/) sur Firebase Hosting.
+# Build l'app Flutter en web puis la déploie sur Firebase Hosting.
 #
 # Prérequis (une seule fois) :
 #   1. Crée un projet sur https://console.firebase.google.com
@@ -14,7 +14,11 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'docs/**'
+      - 'lib/**'
+      - 'web/**'
+      - 'assets/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
       - 'firebase.json'
       - '.firebaserc'
       - '.github/workflows/firebase-hosting.yml'
@@ -24,11 +28,27 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dépendances
+        run: flutter pub get
+
+      - name: Analyse statique
+        run: flutter analyze
+
+      - name: Build web (release)
+        run: flutter build web --release
+
+      - name: Déploiement Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
