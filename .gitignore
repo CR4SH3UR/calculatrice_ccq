@@ -48,3 +48,10 @@ app.*.map.json
 /android/key.properties
 *.jks
 *.keystore
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+database-debug.log
+ui-debug.log

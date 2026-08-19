@@ -61,3 +61,32 @@ flutter analyze
 Flutter · Material 3 · `shared_preferences` (persistance locale) · `http` (API
 CCQ) · `pdf`/`printing` (export PDF) · `share_plus`/`path_provider` (export CSV
 et sauvegarde).
+
+## Déployer l'app web sur Firebase Hosting
+
+L'application Flutter peut être compilée en web et hébergée sur Firebase
+Hosting. La configuration est déjà en place (`firebase.json` → `build/web`,
+`.firebaserc`).
+
+**1. Créer le projet** sur [console.firebase.google.com](https://console.firebase.google.com),
+puis remplacer `calculatrice-ccq` par l'ID réel du projet dans `.firebaserc`
+(et dans `.github/workflows/firebase-hosting.yml`).
+
+**2. Déploiement automatique** (recommandé — GitHub Actions build + déploie à
+chaque push sur `main`) : ajouter un secret `FIREBASE_SERVICE_ACCOUNT` au dépôt
+(Console Firebase → Paramètres du projet → Comptes de service → « Générer une
+nouvelle clé privée », puis GitHub → Settings → Secrets and variables →
+Actions). Le workflow `.github/workflows/firebase-hosting.yml` compile l'app
+(`flutter build web`) et la publie.
+
+**3. Déploiement manuel** (depuis ta machine, Flutter installé) :
+
+```bash
+flutter build web --release
+npm install -g firebase-tools     # une seule fois
+firebase login                    # ouvre le navigateur pour s'authentifier
+firebase deploy --only hosting
+```
+
+> Astuce : `firebase hosting:channel:deploy preview` crée une URL de
+> prévisualisation temporaire sans toucher au site en production.
