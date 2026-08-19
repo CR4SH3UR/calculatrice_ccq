@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/lang.dart';
+import '../screens/about_screen.dart';
 import '../screens/calculs_plus.dart';
 import '../screens/charpente_screens.dart';
 import '../screens/chantier_screens.dart';
@@ -152,6 +153,8 @@ final List<SectionOutils> sectionsOutils = [
         Icons.phone, (_) => const ContactsScreen()),
     Outil('documentation', 'Documentation', 'Guides et infos',
         Icons.menu_book, (_) => const DocumentationScreen()),
+    Outil('a-propos', 'À propos', 'Version, crédits',
+        Icons.info_outline, (_) => const AboutScreen()),
   ]),
 ];
 
@@ -234,6 +237,7 @@ const Map<String, (String, String)> _outilsEn = {
   'feries': ('Statutory holidays', 'Paid holidays and vacation'),
   'numeros': ('Useful numbers', 'CCQ, CNESST, emergency'),
   'documentation': ('Documentation', 'Guides and info'),
+  'a-propos': ('About', 'Version, credits'),
 };
 
 /// Titre d'un outil dans la langue active.
