@@ -115,30 +115,19 @@ class _TauxMetiersScreenState extends State<TauxMetiersScreen> {
   }
 }
 
-class _MetierTile extends StatefulWidget {
+class _MetierTile extends StatelessWidget {
   const _MetierTile({required this.metier, required this.secteur});
   final Metier metier;
   final Secteur secteur;
 
   @override
-  State<_MetierTile> createState() => _MetierTileState();
-}
-
-class _MetierTileState extends State<_MetierTile> {
-  /// Palier choisi pour voir ses hausses (null = compagnon, le dernier).
-  int? _selPalier;
-
-  @override
   Widget build(BuildContext context) {
-    final Metier metier = widget.metier;
-    final Secteur secteur = widget.secteur;
     final double comp = CcqData.tauxCompagnon(metier, secteur);
     final List<Hausse> futures = CcqData.haussesFutures(secteur);
     final Color onSurf = Theme.of(context).colorScheme.onSurface;
-    final paliers = metier.paliers();
-    final int selIdx = _selPalier ?? paliers.length - 1;
-    final sel = paliers[selIdx];
+    final List<Palier> paliers = metier.paliers();
     final String libelleComp = paliers.last.nom;
+    final bool aApprentis = paliers.length > 1;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -161,62 +150,7 @@ class _MetierTileState extends State<_MetierTile> {
                   fontWeight: FontWeight.w600, color: AppColors.infos)),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                  tr('Touche un palier pour voir ses prochaines hausses.',
-                      'Tap a step to see its upcoming increases.'),
-                  style: TextStyle(
-                      fontSize: 11.5,
-                      fontStyle: FontStyle.italic,
-                      color: onSurf.withValues(alpha: 0.55))),
-            ),
-            const SizedBox(height: 4),
-            ...paliers.asMap().entries.map((e) {
-              final int i = e.key;
-              final p = e.value;
-              final bool actif = i == selIdx;
-              return InkWell(
-                borderRadius: BorderRadius.circular(8),
-                onTap: () => setState(() => _selPalier = i),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: actif
-                        ? AppColors.infos.withValues(alpha: 0.10)
-                        : null,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-                  child: Row(
-                    children: [
-                      Icon(
-                          actif
-                              ? Icons.radio_button_checked
-                              : Icons.radio_button_unchecked,
-                          size: 16,
-                          color: actif
-                              ? AppColors.infos
-                              : onSurf.withValues(alpha: 0.3)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text('${p.nom}  (${p.pourcentage} %)',
-                            style: TextStyle(
-                                color: onSurf
-                                    .withValues(alpha: actif ? 0.95 : 0.75),
-                                fontWeight:
-                                    actif ? FontWeight.w700 : FontWeight.w400)),
-                      ),
-                      Text('${Fmt.money(comp * p.pourcentage / 100)}/h',
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
-                    ],
-                  ),
-                ),
-              );
-            }),
-            if (futures.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Divider(color: AppColors.success.withValues(alpha: 0.25)),
+            if (futures.isNotEmpty)
               Row(
                 children: [
                   const Icon(Icons.trending_up,
@@ -224,38 +158,177 @@ class _MetierTileState extends State<_MetierTile> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                        '${tr('Prochaines hausses', 'Upcoming increases')} — ${sel.nom}',
+                        aApprentis
+                            ? tr('Prochaines hausses — apprentis inclus',
+                                'Upcoming increases — apprentices included')
+                            : tr('Prochaines hausses', 'Upcoming increases'),
                         style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 12.5,
                             color: AppColors.success)),
                   ),
                 ],
+              )
+            else
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                    tr('Taux par palier (compagnon et apprentis).',
+                        'Rate per step (journeyman and apprentices).'),
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        fontStyle: FontStyle.italic,
+                        color: onSurf.withValues(alpha: 0.55))),
               ),
-              const SizedBox(height: 4),
-              ...futures.map((h) {
-                final double r = CcqData.tauxCompagnon(metier, secteur,
-                        on: h.date) *
-                    sel.pourcentage /
-                    100;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${Fmt.dateFr(h.date)}  (+${Fmt.trim(h.pct)} %)',
-                          style: TextStyle(color: onSurf.withValues(alpha: 0.75))),
-                      Text('${Fmt.money(r)}/h',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.success)),
-                    ],
-                  ),
-                );
-              }),
-            ],
+            const SizedBox(height: 10),
+            _GrilleProgression(
+              metier: metier,
+              secteur: secteur,
+              paliers: paliers,
+              futures: futures,
+              comp: comp,
+            ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Grille défilable des taux : une ligne par palier (apprentis puis
+/// compagnon), une colonne « Actuel » puis une colonne par hausse programmée.
+/// Montre la progression complète — les hausses s'appliquent aux apprentis
+/// comme au compagnon (l'apprenti est un pourcentage du taux de compagnon).
+class _GrilleProgression extends StatelessWidget {
+  const _GrilleProgression({
+    required this.metier,
+    required this.secteur,
+    required this.paliers,
+    required this.futures,
+    required this.comp,
+  });
+
+  final Metier metier;
+  final Secteur secteur;
+  final List<Palier> paliers;
+  final List<Hausse> futures;
+  final double comp;
+
+  static const double _wLabel = 120;
+  static const double _wCol = 82;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color onSurf = Theme.of(context).colorScheme.onSurface;
+
+    Widget valueCell(String txt, {required bool strong, Color? color}) =>
+        SizedBox(
+          width: _wCol,
+          child: Text(txt,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: strong ? FontWeight.w800 : FontWeight.w600,
+                  color: color ?? onSurf.withValues(alpha: 0.9))),
+        );
+
+    final Widget header = Padding(
+      padding: const EdgeInsets.fromLTRB(6, 0, 6, 6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: _wLabel,
+            child: Text(tr('Palier', 'Step'),
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: onSurf.withValues(alpha: 0.6))),
+          ),
+          SizedBox(
+            width: _wCol,
+            child: Text(tr('Actuel', 'Now'),
+                textAlign: TextAlign.end,
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: onSurf.withValues(alpha: 0.6))),
+          ),
+          ...futures.map((h) => SizedBox(
+                width: _wCol,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(Fmt.dateFr(h.date),
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: onSurf.withValues(alpha: 0.6))),
+                    Text('+${Fmt.trim(h.pct)} %',
+                        style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.success)),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+
+    final List<Widget> lignes = paliers.asMap().entries.map((entry) {
+      final int i = entry.key;
+      final Palier p = entry.value;
+      final bool estComp = i == paliers.length - 1;
+      return Container(
+        decoration: BoxDecoration(
+          color: estComp ? AppColors.infos.withValues(alpha: 0.08) : null,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _wLabel,
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(p.nom,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight:
+                                estComp ? FontWeight.w800 : FontWeight.w600,
+                            color: onSurf.withValues(alpha: 0.9))),
+                  ),
+                  const SizedBox(width: 4),
+                  Text('${p.pourcentage} %',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: onSurf.withValues(alpha: 0.5))),
+                ],
+              ),
+            ),
+            valueCell(Fmt.money(comp * p.pourcentage / 100), strong: estComp),
+            ...futures.map((h) {
+              final double r =
+                  CcqData.tauxCompagnon(metier, secteur, on: h.date) *
+                      p.pourcentage /
+                      100;
+              return valueCell(Fmt.money(r),
+                  strong: estComp, color: AppColors.success);
+            }),
+          ],
+        ),
+      );
+    }).toList();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [header, ...lignes],
       ),
     );
   }

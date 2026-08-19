@@ -194,6 +194,15 @@ void main() {
       expect(p1, closeTo(50.79 * 0.50, 0.001));
     });
 
+    test('Les hausses à venir s\'appliquent aussi aux apprentis', () {
+      final m = elec(); // 1er palier apprenti = 50 %
+      // Après la hausse du 25 avril 2027 (+5 %), l'apprenti reste à 50 %
+      // du compagnon, donc profite de la même hausse.
+      final p1Apres2027 = CcqData.taux(m, Secteur.institutionnelCommercial, 50,
+          on: DateTime(2027, 6, 1));
+      expect(p1Apres2027, closeTo(50.79 * 1.05 * 0.50, 0.001));
+    });
+
     test('La liste des métiers est étoffée', () {
       expect(CcqData.metiers.length, greaterThan(80));
     });
