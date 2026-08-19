@@ -1,6 +1,11 @@
-# Build l'app Flutter en web puis la déploie sur Firebase Hosting.
+# Build l'app Flutter en web puis (si configuré) la déploie sur Firebase Hosting.
 #
-# Prérequis (une seule fois) :
+# Le build web et l'analyse tournent TOUJOURS. Le déploiement, lui, n'a lieu
+# que si le secret « FIREBASE_SERVICE_ACCOUNT » est présent : tant qu'il ne
+# l'est pas, l'étape est ignorée avec un avertissement (au lieu de faire
+# planter tout le workflow).
+#
+# Prérequis pour activer le déploiement (une seule fois) :
 #   1. Crée un projet sur https://console.firebase.google.com
 #   2. Remplace « calculatriceccq » par l'ID de ton projet (ici ET dans .firebaserc)
 #   3. Ajoute un secret GitHub « FIREBASE_SERVICE_ACCOUNT » :
@@ -30,6 +35,11 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # On recopie le secret dans une variable d'env pour pouvoir tester sa
+    # présence dans les conditions `if:` (le contexte `secrets` n'y est pas
+    # accessible directement).
+    env:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +57,13 @@ jobs:
       - name: Build web (release)
         run: flutter build web --release
 
+      - name: Secret Firebase manquant (déploiement ignoré)
+        if: env.FIREBASE_SERVICE_ACCOUNT == ''
+        run: |
+          echo "::warning title=Déploiement Firebase ignoré::Le build web a réussi mais le secret FIREBASE_SERVICE_ACCOUNT n'est pas configuré, donc l'app n'a pas été déployée. Ajoute-le dans GitHub → Settings → Secrets and variables → Actions pour activer le déploiement automatique."
+
       - name: Déploiement Firebase Hosting
+        if: env.FIREBASE_SERVICE_ACCOUNT != ''
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
