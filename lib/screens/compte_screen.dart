@@ -195,33 +195,6 @@ class _ConnexionFormState extends State<_ConnexionForm> {
             ),
           ),
         ],
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            const Expanded(child: Divider()),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(tr('ou', 'or'),
-                  style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.5))),
-            ),
-            const Expanded(child: Divider()),
-          ],
-        ),
-        const SizedBox(height: 6),
-        OutlinedButton.icon(
-          onPressed: _occupe
-              ? null
-              : () => _executer(AuthService.instance.connecterGoogle),
-          icon: const Icon(Icons.g_mobiledata, size: 28),
-          label: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Text(tr('Continuer avec Google', 'Continue with Google')),
-          ),
-        ),
         const SizedBox(height: 16),
         Center(
           child: TextButton(

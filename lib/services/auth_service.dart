@@ -1,12 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 
 import '../l10n/lang.dart';
 
-/// Enveloppe autour de FirebaseAuth : connexion e-mail/mot de passe et Google.
-///
-/// Sur le web, Google passe par une fenêtre popup Firebase ; sur mobile, par
-/// le flux natif du fournisseur — aucune dépendance `google_sign_in` requise.
+/// Enveloppe autour de FirebaseAuth : connexion par e-mail / mot de passe.
 class AuthService {
   const AuthService._();
   static const AuthService instance = AuthService._();
@@ -31,15 +27,6 @@ class AuthService {
 
   Future<void> reinitialiserMotDePasse(String courriel) =>
       _auth.sendPasswordResetEmail(email: courriel.trim());
-
-  Future<void> connecterGoogle() async {
-    final provider = GoogleAuthProvider();
-    if (kIsWeb) {
-      await _auth.signInWithPopup(provider);
-    } else {
-      await _auth.signInWithProvider(provider);
-    }
-  }
 
   Future<void> deconnecter() => _auth.signOut();
 
