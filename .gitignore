@@ -55,3 +55,11 @@ firebase-debug.log
 firestore-debug.log
 database-debug.log
 ui-debug.log
+
+# Clé de compte de service Firebase / Google Cloud (NE JAMAIS committer !)
+# Ce JSON est une clé privée : son contenu va UNIQUEMENT dans le secret GitHub
+# « FIREBASE_SERVICE_ACCOUNT » (Settings → Secrets and variables → Actions).
+*-firebase-adminsdk-*.json
+*serviceAccount*.json
+*service-account*.json
+*service_account*.json
