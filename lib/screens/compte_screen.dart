@@ -313,7 +313,7 @@ class _CompteConnecte extends StatelessWidget {
           builder: (context, date, _) {
             return ValueListenableBuilder<bool>(
               valueListenable: CloudSync.instance.enCours,
-              builder: (context, occupe, __) {
+              builder: (context, occupe, _) {
                 final String etat = occupe
                     ? tr('Synchronisation…', 'Syncing…')
                     : date == null
