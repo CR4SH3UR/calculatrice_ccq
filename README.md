@@ -1,5 +1,8 @@
 # Calculatrice CCQ
 
+[![Déploiement Firebase Hosting](https://github.com/CR4SH3UR/calculatrice_ccq/actions/workflows/firebase-hosting.yml/badge.svg?branch=main)](https://github.com/CR4SH3UR/calculatrice_ccq/actions/workflows/firebase-hosting.yml)
+[![Site en ligne](https://img.shields.io/badge/site-en_ligne-0B63CE)](https://calculatriceccq.web.app/)
+
 Boîte à outils de chantier pour les travailleurs de la construction au Québec.
 Application Flutter (Material 3), en français, pensée pour les gars sur les
 chantiers : la paie, les calculs de tous les jours, et l'info importante à
