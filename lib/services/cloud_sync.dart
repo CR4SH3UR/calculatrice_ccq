@@ -49,9 +49,10 @@ class CloudSync {
       final data = snap.data();
       if (snap.exists && data != null) {
         await _appliquerDistant(data);
-      } else {
-        await _pousser();
       }
+      // Toujours renvoyer l'état local (fusionné) : le document distant devient
+      // complet et on ne perd JAMAIS des données locales absentes du distant.
+      await _pousser();
       derniereSync.value = DateTime.now();
     } catch (e) {
       debugPrint('CloudSync.demarrer: $e');
@@ -114,27 +115,48 @@ class CloudSync {
         'maj': FieldValue.serverTimestamp(),
       };
 
+  /// Applique le document distant SANS perte de données locales :
+  /// - le profil distant n'est appliqué que s'il n'est pas vide (jamais
+  ///   d'écrasement d'un profil local rempli par un profil distant vide) ;
+  /// - les heures et les représentants sont FUSIONNÉS par identifiant (on
+  ///   ajoute ce qui manque, on ne supprime rien).
   Future<void> _appliquerDistant(Map<String, dynamic> data) async {
     _applique = true;
     try {
       final p = data['profil'];
       if (p is Map) {
-        await AppPrefs.setProfil(
-            Profil.fromJson(Map<String, dynamic>.from(p)));
+        final distant = Profil.fromJson(Map<String, dynamic>.from(p));
+        if (!distant.estVide) {
+          await AppPrefs.setProfil(distant);
+        }
       }
+
       final h = data['heures'];
       if (h is List) {
-        await HeuresStore.instance.remplacerTout([
+        final locales = HeuresStore.instance.entries;
+        final ids = locales.map((e) => e.id).toSet();
+        final ajouts = [
           for (final e in h)
-            HeureEntry.fromJson(Map<String, dynamic>.from(e as Map)),
-        ]);
+            if (e is Map)
+              HeureEntry.fromJson(Map<String, dynamic>.from(e)),
+        ].where((e) => !ids.contains(e.id)).toList();
+        if (ajouts.isNotEmpty) {
+          await HeuresStore.instance.remplacerTout([...locales, ...ajouts]);
+        }
       }
+
       final r = data['representants'];
       if (r is List) {
-        await AppPrefs.representants.remplacerTout([
+        final locaux = AppPrefs.representants.all;
+        final ids = locaux.map((x) => x.id).toSet();
+        final ajouts = [
           for (final e in r)
-            Representant.fromJson(Map<String, dynamic>.from(e as Map)),
-        ]);
+            if (e is Map)
+              Representant.fromJson(Map<String, dynamic>.from(e)),
+        ].where((x) => !ids.contains(x.id)).toList();
+        if (ajouts.isNotEmpty) {
+          await AppPrefs.representants.remplacerTout([...locaux, ...ajouts]);
+        }
       }
     } finally {
       _applique = false;

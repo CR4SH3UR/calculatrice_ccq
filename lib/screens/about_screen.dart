@@ -6,7 +6,7 @@ import '../widgets/common.dart';
 import '../widgets/link_tile.dart';
 
 /// Version affichée de l'app (à garder alignée avec `pubspec.yaml`).
-const String kAppVersion = '1.1.1';
+const String kAppVersion = '1.1.2';
 
 /// Page « À propos » : identité de l'app, version, crédits et sources.
 class AboutScreen extends StatelessWidget {
